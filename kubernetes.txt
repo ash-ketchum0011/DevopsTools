@@ -1,0 +1,184 @@
+*****************************************KUBERNETES********************************************
+Kubernetes(k8s): It is the most suitable container orchestration tool. It is used where large level of orchestration is required.
+Other container orchestration tools: Docker swarm, rocket, containerD, CRIO
+Kubernetes can support containers from different tools whereas docker swarm is for only docker.
+Docker swarm have limited features while in kubernetes it have features like replication controller, config map, different deployment, etc.
+Kubernetes installation is little complex in comparison todocker swarm.
+Minikube: unit testing
+kubectl: command line utility
+CKA:certified kubernetes administrator CKAD:certified kubernetes application developer CKS:certified kubernetes security 
+Kubernetes cannot be installed if there are more than one container tools are installed on the machine
+
+#Kubernetes supports and manage the containers of the docker
+POD: Basic unit wrapper of containers
+In kubernetes seperate software components are need to download for master node.
+
+Worker nodes are connected to the master node via POD network.
+POD is the basic unit in kubernetes like containers were the basic units in docker.
+POD network created by the kubernetes and there some other third party POD networks that kubernetes recommends which are: calico, flannel, weave these are open source and more secure.
+
+POD network layer get created upon the host network layer which is dedicated to the kubernetes POD only.
+CIDR range will be needed to define while creating the POD network layer
+
+Container is placed inside the POD. A POD can have multiple container inside it.To access the application running inside the container we need to go via POD.
+
+Kuberenetes is highly secure.
+Every POD have a IP address which will be in the CIDR range.
+Same IP address will be shared by its container.
+Incase of multi container we need to access the container by this method:
+<IP address of POD/container>:port-number of the application
+
+Applications inside the POD the local host to each other. Local host means we can access other application from one application which are in local host. 
+
+Automates many of the things that are been done by the ops team. Automatically scale up and scale down the application.
+Kubernetes can be install anywhere. EKS(Elastic kubernetes service) is the dedicated service provided by the AWS.
+
+Components of master node:
+etcd server: Entire cluster information(what is happening in the cluster) is stored in a encrypted way. Data is stored in the form of key-value pair.(Data like: workernodes,workload,pods kubernetes, objects)
+API server: Every command we write (in kubectl)will go to the api server then it will redirect to the other components.
+Scheduler: Where(on which workernode) the POD will be created is decide by the scheduler.
+Control manager: It checks the desired state. Like there will be one replica should always be running.
+
+Components of the worker node:
+kubelet: Agent on the worker node. Master send the request to create the pod via api server and whether the pod is created according to the request is check by the kubelet. If the container get deleted in the worker node so to match the desired state kubelet will again create the container.
+Kube-proxy: Network policies you need to access the application externally is created by the kube-proxy.
+Container runtime: docker, rocket, containerD, crio
+
+Master node should have good configuration: 2vcpu , 2Gb ram or more.
+
+*******DEPLOYMENT********
+T2 medium(2vCPU 4Gib ram) :For master node
+T2 micro : for worker nodes
+
+Master
+sudo su
+hostname kmaster
+vi /etc/hostname #remove everything and write kmaster#wq!
+bash
+apt update
+apt install docker.io -y
+systemctl enable docker #enables the docker service#whenever the system will restart the docker will start as well
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl#Prereqiusites will get isntall
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - #license key will get install
+
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+
+sudo apt-get update
+apt install -qq -y kubeadm=1.21.0-00 kubelet=1.21.0-00 kubectl=1.21.0-00 #kubeadm is to start the cluster#isntalling addtitional services
+sudo apt-mark hold kubelet kubeadm kubectl #whenever the update tasks place to any of the services it should be a planned way
+
+Worker1
+sudo su
+hostname kwn1
+vi /etc/hostname #remove everything and write kwn1
+bash
+apt update
+apt install docker.io -y
+systemctl enable docker #enables the docker service#whenever the system will restart the docker will start as well
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl#Prereqiusites will get isntall
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - #license key will get install
+
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+
+sudo apt-get update
+apt install -qq -y kubeadm=1.21.0-00 kubelet=1.21.0-00 kubectl=1.21.0-00 #kubeadm is to start the cluster#isntalling addtitional services
+sudo apt-mark hold kubelet kubeadm kubectl #whenever the update tasks place to any of the services it should be a planned way
+
+Worker2
+sudo su
+hostname kwn2
+vi /etc/hostname #remove everything and write kwn2
+bash
+apt update
+apt install docker.io -y
+systemctl enable docker #enables the docker service#whenever the system will restart the docker will start as well
+sudo apt-get update && sudo apt-get install -y apt-transport-https curl#Prereqiusites will get isntall
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - #license key will get install
+
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+
+sudo apt-get update
+apt install -qq -y kubeadm=1.21.0-00 kubelet=1.21.0-00 kubectl=1.21.0-00 #kubeadm is to start the cluster#isntalling addtitional services
+sudo apt-mark hold kubelet kubeadm kubectl #whenever the update takes place to any of the services it should be a planned way
+
+Master
+
+kubeadm init --apiserver-advertise-address=<private IP of master-instance > --pod-network-cidr=192.168.0.0/16 #initializing the kubernetes it is same as docker swarm
+mkdir -p $HOME/.kube #creating .kube directory #To start using the cluster following commands need to run
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config #copying config file to my .kube directory
+sudo chown $(id -u):$(id -g) $HOME/.kube/config #giving ownership to the root user to the config file
+
+Worker1
+<copy paste two lines of kubeadm join command here>
+
+Worker2
+<copy paste two lines kubeadm join command here>
+
+Master
+kubectl get nodes
+kubectl create -f https://docs.projectcalico.org/v3.18/manifests/calico.yaml #To install the POD network
+kubectl get nodes
+#Now the cluster is ready
+#POD and every other objects created through the master node only
+#Two ways of creating kubernetes resources:
+#1.using command 2.using manifest file:it a yaml script, it is the best way
+#every kubernetes commadn initiated with kubectl
+kubectl run pod1 --image=nginx 
+kubectl get pods
+kubectl get pods -o wide #It will show where the pod get created
+
+Worker1 or Worker2 where ever the pod get created:
+docker ps
+docker rm -f <containerID> #This container will automatically get created
+#if any container get created inside the worker node directly instead of using master node then the container which is been get created will not be managed by the kubernetes
+#if you delete this container then it will not be recovered
+docker exec -it <paste containerID> bash
+cat /etc/hosts #IP address of container will appear#check whether it is same as pod IPaddress
+
+Master
+kubectl delete pod pod1#deleting the pod and container will automatically get deleted
+cat /root/.kube/config #Entire server information will be here
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

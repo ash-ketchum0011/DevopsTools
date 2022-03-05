@@ -1,0 +1,591 @@
+PM
+cd /etc/puppet/code/environments/production/manifests
+vi site.pp
+
+PA
+systemctl status apache2
+
+****************************PUPPET RESOURCES******************************
+#puppetdocs and puppetcookbook two website for puppet resources
+
+***********Creating a directory****************
+PM
+puppet describe user --providers       #user is a resource type
+vi site.pp
+*******************************************************************************
+node default{
+  package {"apache2":
+        ensure => purged
+     }
+  file { "/tmp/test":
+     ensure => "directory",
+   }
+}
+*******************************************************************************
+
+PA
+puppet agent -t       #A directory "test" will get created
+ls -l /tmp
+
+**********Deleting a file***********
+PA
+touch /tmp/1.txt
+ls /tmp/
+
+PM
+vi site.pp
+*******************************************************************************
+node default{
+  package {"apache2":
+        ensure => purged
+     }
+  file { "/tmp/test":
+     ensure => "directory",
+   }
+  tidy {"/tmp//1.txt":}            #It will delete the 1.txt file
+}
+*******************************************************************************
+
+PA
+puppet agent -t
+ls -l /tmp
+
+**********Creating a user************
+PM
+vi stie.pp
+*******************************************************************************
+node default{
+  package {"apache2":
+        ensure => purged
+     }
+  file { "/tmp/test":
+     ensure => "directory",
+   }
+  tidy {"/tmp//1.txt":}            #It will delete the 1.txt file
+  
+ user {"Ashlesh":
+     name => raman,
+     ensure => present
+  }
+}
+*******************************************************************************
+
+PA
+cat /etc/passwd | grep Ashlesh
+puppet agent -t
+cat /etc/passwd | grep Ashlesh
+
+**********Deleting user***********
+PM
+vi stie.pp
+*******************************************************************************
+node default{
+  package {"apache2":
+        ensure => purged
+     }
+  file { "/tmp/test":
+     ensure => "directory",
+   }
+  tidy {"/tmp//1.txt":}            #It will delete the 1.txt file
+  
+ user {"Ashlesh":
+     name => raman,
+     ensure => absent
+  }
+}
+*******************************************************************************
+
+PA
+puppet agent -t
+cat /etc/passwd | grep Ashlesh
+
+*******Creating a text file with chmod permissions******
+PM
+vi site.pp
+*******************************************************************************
+node default{
+  package {"apache2":
+        ensure => purged
+     }
+  file { "/tmp/test":
+     ensure => "directory",
+   }
+  tidy {"/tmp//1.txt":}            #It will delete the 1.txt file
+  
+ user {"Ashlesh":
+     name => raman,
+     ensure => absent
+  }
+ file {"/tmp/2.txt":
+     ensure => present ,
+     mode => "0777"                  #chmod for security purpose
+  }
+}
+*******************************************************************************
+
+PA
+puppet agent -t
+ls -l /tmp
+
+
+*************Declaring a variable*****************
+PM
+vi site.app
+*******************************************************************************
+node default{
+  $package = ["apache2","tree"]
+  package { $package:
+       ensure => installed
+  }
+}
+*******************************************************************************
+
+PA
+systemctl status apache2
+tree
+puppet agent -t
+tree
+systemctl status apache2
+
+*******Deleting packages***********
+PM
+vi site.app
+*******************************************************************************
+node default{
+  $package = ["apache2","tree"]
+  package { $package:
+       ensure => purged
+  }
+}
+*******************************************************************************
+
+PA
+puppet agent -t
+tree
+systemctl status apache2
+
+********Creating a Condition*********
+PM
+vi site.pp
+*******************************************************************************
+node default{
+  $package = ["apache2","tree"]
+  package { $package:
+       ensure => purged
+  }
+exec{"Conditions":
+command => "/bin/echo "Apache is installed" > /tmp/software.txt",
+onlyif => "/bin/which apache2",
+}
+}
+*******************************************************************************
+
+PA
+systemctl status apache2
+/bin/which apache2
+puppet agent -t
+ls /tmp
+
+*******************************************************************************
+PUPPET CLASSES 
+Puppet classes are defined as a collection of resources, which are grouped together in order to get a target node or machine in a desired state. The purpose of using a class is to reduce the same code repitition inside any manifest file or any other puppet code.
+
+PM
+vi site.pp
+*******************************************************************************
+class puppet_user{
+   user{ "puppet_user":
+          ensure => present,
+          uid => 1001,
+          home => "/home/puppet_user"
+          }
+}
+node default{
+    include puppet_user
+}
+*******************************************************************************
+
+PA
+cat /etc/passwd | grep puppet
+puppet agent -t
+cat /etc/passwd | grep puppet       #new user with name puppet_user is created
+
+*******Creating a Class with a parameter********
+PM
+vi site.pp
+*******************************************************************************
+class puppet_user($username){
+   user{ $username:
+          ensure => present,
+          uid => 1001,
+          home => "/home/$username"
+          }
+}
+#invoke the class
+node default{
+    class { puppet_user:
+        username => "puppet_user",
+             }
+}
+*******************************************************************************
+
+PA
+userdel puppet_user
+puppet agent -it
+cat /etc/passwd | grep puppet
+
+*****************************PUPPET MODULE********************************
+PM
+cd ..
+ls
+puppet module install puppetlabs-apache --version 7.0.0
+ls
+ls modules/
+cd modules/apache/
+cd manifests/
+ls
+cd ..
+cd ..
+cd ..
+cd manifests/
+vi site.pp
+*******************************************************************************
+node default{
+    
+    class { "apache": }  #It will install apache without any other lines of codes
+}
+*******************************************************************************
+
+PA
+puppet agent -t
+systemctl status apache2
+
+PM
+ls
+cd modules/
+rm -ifr *
+ls
+
+*******Creating User defined Module********
+puppet module generate rp-createuser
+#press enter if no values you want to Add
+ls
+cd createusers/
+ls
+cd manifests/
+ls
+vi init.pp
+*******************************************************************************
+#inside "class createuser"
+ user{"testuser":
+      ensure => present
+}
+*******************************************************************************cd ..
+cd ..
+cd ..
+cd manifests/
+vi site.pp
+*******************************************************************************
+node default{
+    include "createuser"
+}
+*******************************************************************************
+
+PA
+cat /etc/passwd | grep tes
+puppet agent -t
+cat /etc/passwd | grep tes
+
+
+********************************QUIZ*****************************************
+Which of these can be re-used in a puppet program?
+Class
+What is the mode communication between the puppet master and puppet slaves?
+SSL certificates
+Can we create modules manually rather than using the utility?
+Yes
+Which of these is the manifest file?
+site.app
+Which loop statement allows the command to execute if the condition is true?
+onlyif
+*******************************************************************************
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+ANSIBLE (Pushed based approach)
+#Agentless: No need to install any software into the client machine
+#Master communicates to Slaves via SSH layer
+********Uninstalling Puppet**********
+PM
+apt purge puppet.master
+
+PA
+apt purge puppet
+
+****************Steps before the ANSIBLE Installation*****************************
+AM
+cd /home/ubuntu/
+hostname amaster
+vi /etc/hostname
+*******************************************************************************
+amaster
+*******************************************************************************
+bash
+ssh-keygen
+cat /root/.ssh/id_rsa.pub
+#copy this ssh key
+
+AC
+hostname aclient
+vi /etc/hostname/
+*******************************************************************************
+aclient
+*******************************************************************************
+bash
+vi /root/.ssh/authorized_keys
+*******************************************************************************
+~
+~
+~
+#paste that ssh key in the last line
+*******************************************************************************
+ip a
+#copy IP address from the line 2: eth0: inet <IPaddress>
+
+AM
+ssh <Paste IP address here> #After typing "yes" you will get connected to the aclient from master
+
+***************************ANSIBLE INSTALLATION***************************
+
+AM
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt-get update
+sudo apt-get install ansible
+ansible --version
+
+************************ANSIBLE ADHOC COMMANDS************************
+#There are lots of modules in ansible, resource type is module here
+ansible-doc -l             #command to list all the modules
+ansible-doc -s apt      #Defining a particular module
+#with the help of adhoc command we can change the configuration management
+cd /etc/ansible/
+ls
+cat ansible.cfg
+vi ansible.cfg
+vi hosts
+*******************************************************************************
+[webservers]   #mention the group name here we can define many IPaddress under it and also we can create more groups like; [dbservers]
+#paste IP address of client machine in the last line
+*******************************************************************************
+ip a #copy ip address 2: eth0: inet IPaddress
+cat /root/.ssh/id_rsa.pub #copy the content
+vi /root/.ssh/authorized_keys #paste the content the last line
+ssh <paste ip address 2: eth0: inet IPaddress>
+#This is how we can ssh to master from master itself
+
+ansible-doc -s ping
+ansible webservers -m ping
+ansible webservers -m shell -a "apt install apache2 -y" #shell module to run linux commands
+
+AC
+systemctl status apache2
+
+AM
+ansible webservers -m shell -a "apt purge apache2 -y"
+
+AC
+systemctl status apache2
+
+AM
+ansible webservers -m apt -a "name=apache2 state=present" #Install apache using "apt"
+
+AC
+systemctl status apache2
+
+AM
+ansible webservers -m apt -a "name=apache2 state=absent purge=true"
+
+AC
+systemctl status apache2
+
+AM
+ansible webservers -m apt -a "name=apache2 state=present"
+
+AC
+systemctl status apache2
+
+AM
+ansible webservers -m service -a "name=apache2 state=stopped"
+
+AC
+systemctl status apache2
+
+AM
+ansible webservers -m service -a "name=apache2 state=started"
+
+AC
+systemctl status apache2
+
+#Copying the file to the client machine:
+AM
+ls
+touch /tmp/status.txt
+ansible-doc -s copy
+ansible webservers -m copy -a "src=/tmp/status.txt dest=/tmp/status.txt" #File get copied
+
+AC
+ls /tmp                #File is copied
+
+AM
+ansible webservers -m copy -a "content=testing dest=/tmp/status.txt" writing content
+
+AC
+cat /tmp/status
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

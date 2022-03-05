@@ -1,0 +1,120 @@
+ls /var/lib/docker/ #All the objects related to docker
+#bridge network
+#Now we will trying to access externally an application running inside the container
+docker container ls --all
+docker container run -it --name web -p 80:80 -d ubuntu #p is for port forwarding #port number of the host machine and containers port number
+#Port forwarding is to matching the port of your host machine with that of the container to get an access into it
+docker exec -it web bash
+apt update
+apt install apache2 -y
+service apache2 status
+service apache2 start
+service apache2 status
+ls /var/www/html/
+exit
+echo "<h1> This is testing for port forwarding </h1>" >> test.html
+ls
+docker cp test.html web:/var/www/html #Copying html file to the container  #Copy paste the instance IP address into the browser
+docker exec -it web bash
+ls /var/www/html/
+cat /var/www/html/test.html             #<instance IP>/test.html
+exit
+
+sudo lsof -i -P -n | grep LISTEN #To see open ports
+
+#custom image: when you create a docker image from a docker container
+docker ps
+docker commit web webimg#creating a image from container
+docker images
+
+Sharing Image**************
+SAVE & LOAD method*********************
+docker save webimg > webimg.tar
+ls
+docker rmi webimg
+docker images
+ls
+docker load < webimg.tar #To unzip the .tar file and store it as an image
+
+Import and Export method****
+docker container run -it --name c1 -d ubuntu
+docker export c1 -o c1.tar #export image file from a container #o is for output
+ls
+docker import c1.tar img1
+docker images
+
+*****Differnece between save|load and import|export*****
+In S|L we are using docker image to create .tar file and and converting it into image 
+In E|I we are converting a docker container, converting it to an image and creating a .tar file from it and then unzipping it
+
+
+#Push images publically on docker is free while pushing image privatelly have cost attached to it
+
+#A docker image have set of instruction layers
+#docker image tag command
+docker images
+docker rmi img1
+docker images
+docker image tag webimg userID/webimg #Both webimg and userID/webimg point towards the same set of instructions
+docker images
+docker login
+#mention username and password
+docker logout
+docker login
+docker push webimg #It will through an error
+docker push userID/webimg #This will get pushed w/o any error to the docker hub website #docker push userID/webimg #To pull the image
+#To push the image to the docker hub need not to convert it to the .tar file
+#.tar is only require when you want to shrare it with someone else
+
+#registry is used to store docker image locally so don't need to go to docker hub and use internet #naming conventional; localhost:5000/imagename
+
+docker rm -f web c1 #removing containers
+#create a container with registry docker image
+docker container run -d -p 5000:5000 --name local_registry registry
+docker images
+docker container ls
+docker inspect local_registry
+docker image tag webimg localhost:5000/webimg
+docker images
+docker push localhost:5000/webimg #pushing image to the docker registry
+#check it on web by searching: <pasteIPaddress>:5000/v2/_catalog   
+ls <paste source address from mounting section inside inspect command>
+ls <paste source address from mounting section inside inspect command>/docker/registry/v2/
+ls <paste source address from mounting section inside inspect command>/docker/registry/v2/repositories
+#pulling image from registry
+docker images
+docker rmi localhost:5000/webimg
+docker images
+docker pull localhost:5000/webimg
+docker images
+
+DOCKER FILE******************************
+#Docker file #used for automation #To create custom docker image
+#The docker file have set of instructions and there are some resereved words for it
+vi Dockerfile
+---------------------------------------PASTE THIS SCRPIT INTO THE DOCKER FILE-----------------------------------------------------------
+FROM ubuntu:18.04  #FROM keyword to download base image #mentioning the version is helpful and better way to do it
+ARG DEBIAN_FORNTEND=non intreractive #ARG argument #To put a default value to the questions asked like geographical related questions asked #like when we installed apache on container
+RUN apt-get update #adding an instruction layer #apt repository getting updated
+RUN apt-get -y install apache2 #adding an instruction layer #install apache web server
+ADD test.html /var/www/html #adding and copy files from local system # replace . with tets.html if you want to choose every files
+ENTRYPOINT apachetl -D FOREGROUND #ENTRYPOINT and CFD are used to run the command as soon as container get started my apache service should get started
+ENV name DEVOPS #ENV is the envirnoment varible which are available globally to your system #it will create an environment varible for image #name is env variable and its value is devops
+#EXPOSE is used for exposing a port number
+*****************************SAVE AND EXIT THE FILE***********************************
+docker build . -t myimg #It will create the image from the dockerfile
+docker images
+docker container run -it --name m1 -d myimg
+docker ps
+docker exec -it m1 bash
+uname -a #It will show the image name as ubuntu
+service apache2 status #It will show that apache is running and it is in running state
+ls /var/www/html/
+env #To check the environment variable
+exit 
+docker image inspect m1
+docker image history myimg
+
+
+
+

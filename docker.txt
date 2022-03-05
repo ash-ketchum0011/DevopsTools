@@ -1,0 +1,120 @@
+Containers also have an OS but which is actually just a small part of an OS like about 5percent and all the other part it took from the host OS.
+DOCKER IS AN OS LEVEL VIRTUALISATION where as VMVARE IS A HARDWARE LEVEL VIRTUALISATION.
+
+DOCKER is mostly recommended to be used on linux but it can also work on some windows. Docker tool is used to run docker on the windows, this tool have those linux files which are required to run the docker container.
+
+Advantages of DOCKER:
+♫No pre-allocation of RAM
+♫Continuous Integration Efficiency: Docker enables you to build a container image and use that same image across every step of the deployment process
+♫Less cost
+♫It is light in weight
+♫It can run on physical H/W, Virtual H/W or on cloud
+♫We can re-use the image
+♫It took very less time to create the container
+
+Disadvantages of Docker:
+♫Docker is not good solution for application that requires rich GUI
+♫Difficult to manage large amount of containers
+♫Docker does not provide cross platform compatibility means if an application is designed to run in a docker container on windows then it can't run on linux or vice-versa
+♫Docker is suitable when the development OS and Testing OS are same if the OS is different we should use VM.
+IF dev have ubuntu then testing also need to have ubuntu, it won't work with centOS or other OS.
+
+DOCKER CONTAINER does it works in the form of/ it is LAYERED FILE SYSTEM
+DOCKER ECOSYSTEM: Set of software packages, It have different components:
+
+1. Docker client:
+Docker users can interact with docker deamon through a client
+Docker client uses CLI and API to communicate with the docker deamon
+It is possible for docker client to communicate with more than one daemon
+
+2.Docker deamon/engine/server: 
+It does all the execution of commands like: pull, etc
+Runs on host OS
+Responsible for running containers to manage docker services
+Docker daemon can communicate with more than one deamons
+
+3.Docker hub/registry: Public and Private registry
+
+4.Docker images:
+Read only binary templates used to create docker containers
+Single file with all dependencies and configuration required to run a program
+☺Image can be create from the existing container
+☺Image can be taken from docker hub
+☺Image can be created with help of a docker file
+
+5.Docker Compose
+
+6.Docker Host: Its the machine(HOST MACHINE) upon which whole docker ecosystem is running.
+
+For ubuntu                            For centos
+sudo su                                 sudo su
+apt update                             yum update
+apt install docker.io -y          yum install docker 
+
+docker --version 
+docker version
+systemctl status docker                                                                #To check docker is active or not
+
+╚Docker Image:
+#To download docker image go to hub.docker.com
+docker pull centos                                                                     #It will downlaod centos image #docker pull centos:7 #To pull version 7 of it
+docker images                                                                          #To check downloaded images #docker images ls
+#Tag represents which docker image you have downloaded (like; latest, 9,8 ,7)
+#Docker image is a read only set of instructions
+#you can not modify a docker image
+docker --help
+docker pull ubuntu
+docker images                                                                         #Image ID is the unqiuely identified number
+docker rmi ubuntu                                                                   #To delete an image
+docker image rm centos                                                         #Another delete command
+docker image --help                                                              #commands related to the docker image
+
+╚Docker Container:
+#reason behind creating a contianer is so that we can deploy an application upon it
+docker run                                                                            #To create a container
+docker container run                                                            #another command to create a container
+#attach mode : when -d is not mentioned 
+docker container run -it --name c1 ubuntu                          #it interactive terminal #name container name of your choice #c1 is the container name of our choice #ubuntu is the image
+ls
+mkdir test
+ls
+exit
+docker container ls                                                            #To see different container running
+docker ps                                                                          #another commandTo see different containers runnig
+docker container ls --all                                                  #It will show all the containers including running and stopped #STATUS: Exited(0) #means it is in the stopped state and (0) means it is normal shut down
+docker ps -a                                                                    #Another command to show all the containers running as well as stopped
+#detach mode : when -d is mentioned
+docker container -it --name c2 -d centos                       #If the image is not downloaded it will first download it and then create the container #centos is the image name
+docker ps -a
+docker start c1                                                              #To start a container
+docker stop c2
+docker start c2
+docker ps
+docker kill c2                                                              #To stop the container forcefully
+docker exec -it c1 bash                                               #To enter inside container
+ls
+mkdir test1
+ls
+docker restart c1                                                        #If container is in start state it will stop and restart it and if a container is in stopped state it will start it
+
+Difference between stop and pause
+when a container is running an application and if it is on step three out of five and stopped and started again, It will start from the begining but in the case of pause it will start from where we put a pause on it.
+docker pause c1
+docker ps
+docker unpause c1
+docker ps
+
+#To delete the container:
+docker stop c1
+docker container rm c1                                              #docker rm c1
+dcoker rm -f                                                              #To delete a container even in running stage
+docker ps -a
+
+#If a docker image is reffered to a container then to remove it first you remove the docker container
+
+docker container run -it --name web -d ngnix
+docker top web                                                       #To check how many processes running inside the container
+docker stats web                                                    #memory is been used by a container
+
+ # Inspect debug your container
+docker inspect                                                      #docker container inspect

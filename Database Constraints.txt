@@ -1,0 +1,87 @@
+DATABASE CONSTRAINTS
+Data Integrity, Data consistency, Data Accuracy, Data Reliability
+
+Check Constraints, Unique Constraints, Not null Constraints, Primary key Constraints, Forgein key Constraints
+
+Check Constraints--------
+create table student(student_ID int, Name varchar(20), Age int CHECK(age>=15 and age<=20));        #putting a limit to the values that someone enter into the age column
+
+Unique Constraints--------
+create table student(student_ID int UNIQUE, Name varchar(20), Age int);     #Only unique values are allowed inside the student_ID column
+
+Not Null Constraints----------
+1. Inline constraints 2. Out of line constraints
+
+create table student(student_ID int NOT NULL, Name varchar(20), Age int);
+
+Primary Key Constraints------------
+Primary ke	y have behaviors of both NOT NULL and Unique constraints
+One table have one Primary Key
+PKC is used to uniquely identify each record in a database table
+
+create table student(student_ID int PRIMARY KEY, Name varchar(20), Age int);
+
+#Composite Primary Key-
+create table Observation(student_ID int, course_ID int, score int, PRIMARY KEY(student_ID, course_ID));
+
+DIFFERENT WAYS OF PRIMARY KEY DECLARATION:
+
+I- INLINE WITHOUT NAME
+create table Emp_details(EmpID number(6) primary key, EmpName varchar(8));
+desc Emp_details;
+insert into Emp_details values(1,'krish');
+insert into Emp_details values(1,'yumi');
+insert into Emp_details values(null, 'yami');
+
+II- INLINE WITH NAME
+create table Emp_details1(EmpID number(6) constraint pk_ID1 primary key, EmpName varchar(8));
+desc Emp_details;
+
+III- OUTLINE WITH NAME
+create table Emp_details2(EmpID number(6), EmpName varchar(10), constraint pk_empid1 primary key(EmpID));
+desc Emp_details2
+
+ADDING & REMOVING PRIMARY KEY TO A EXISTING TABLE:
+create table Emp_details3(EmpID number(6), EmpName varchar(10));
+desc Emp_details3;
+alter table Emp_details3 add constraint pk_Emp_ID1 primary key(EmpID);
+desc Emp_details3;
+alter table Emp_details3 drop constraint pk_Emp_ID1;
+desc Emp_details3;
+
+
+
+FOREIGN KEY CONSTRAINT-------------
+#Forgein key in one table point at primary key in another table
+#FKC is used to identify and enforce the relationships between tables
+
+create table teachers(teacher_ID int PRIMARY KEY, teacher_Name varchar(20) NOT NULL);
+create table student(student_ID int PRIMARY KEY, Name varchar(20), Age int, T_ID int REFERENCE teacher(teacher_ID))
+
+
+I- INLINE WITHOUT NAME
+create table project(proNo number(6) primary key, proName varchar(10) not null, location varchar(10));
+create tableEmp_data(EmpID number(6) primary key, EmpName varchar(10) not null, salary number(10), proNo number references project(proNo));
+
+desc Emp_data;
+insert into project values(1,'qualcomm','sp');
+insert into Emp_data values(123,'rama',100,1);
+insert into Emp_data values(783,'riya',90,2);             
+
+cl scr #To clear screen
+
+II- INLINE WITH NAME
+create table Emp_data1(EmpID number(6) primary key, EmpName varchar(10) not null, salary number(6), pro_no number constraint fk_pro_no references project(pro_no));
+
+desc Emp_data1;
+create table Emp_data2(EmpID number(6) primary key, EmpName varchar(10) not null, salary number(6), pro_no number, constraint fk_prono foreign key(pro_no) references project(pro_no));
+
+alter table Emp_data2 drop constraint fk_prono;
+alter table Emp_data2 add constraint fk_rpo_no1 foreign key(pro_no) references project(pro_no);
+drop table project;
+
+
+
+
+
+

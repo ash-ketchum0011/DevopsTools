@@ -1,0 +1,297 @@
+Structured Query Language: 
+
+Structure Query Language(SQL) is a database query language used for storing and managing data in Relational DBMS.SQL was the first commercial language introduced for E.F Codd's  Relational model of database. Today almost all RDBMS(MySql, Oracle, Infomix, Sybase, MS Access) use  SQL as the standard database query language. SQL is used to perform all types of data operations in RDBMS.
+
+The different categories of SQL used in RDBMS to store and manipulate data are:
+
+Data Definition Language(DDL)
+Data Manipulation Language(DML)
+Transaction Control Language(TCL)
+Data Query Language(DQL)
+ 
+
+Data Definition Language (DDL) 
+DDL statements define the data structure such as tables, views etc.. that make up the database. All DDL statements are auto committed means the changes will become permanent and database objects created are available to all users.
+Commonly used DDL statements are:
+
+CREATE
+ALTER
+DROP
+RENAME
+TRUNCATE
+Data types
+A data type identifies or classifies a particular type of information or data. Some commonly used data types are:
+
+CHAR (size) - Used to store character strings values of fixed length.
+VARCHAR2 (size) – Used to store variable length string data.
+NUMBER (size, precision) – Used to store numbers(fixed or floating point)
+DATE – Used to represent date and time.
+LONG – Used to store large variable length strings(upto 2GB).
+
+DDL***********************************************************
+
+DDL statement : CREATE
+
+The CREATE keyword is used for creating database objects like tables, views,triggers, and indexes
+
+Syntax:
+
+CREATE TABLE table_name
+(
+column_name1 DATATYPE(Size) ,
+column_name2 DATATYPE(Size),
+column_name3 DATATYPE(Size)
+);
+Ex: Create Table Employee
+(
+Emp_id number(4) NOT NULL,
+Name varchar2(20) NOT NULL,
+Salary number(8),
+E_Mail varchar2(30),
+Country varchar2(20),
+);
+
+The above statement creates a table named Employee with columns Emp_id, ame,Salary,E_Mail and Country.
+
+__________________________________________________________________
+Create Table Example***************************
+
+create table Employee1 (EmployeeID number(8), FirstName varchar(8), LastName varchar(8), Salary number(5));
+insert into Employee1 values (123, 'ashlesh', 'kulkarni', 350000);
+create table Employee2 as select * from Employee1;
+select * from Employee2
+
+__________________________________________________________________
+DDL statement : ALTER
+Alter statement is used to modify the structure of database or database objects like tables, views etc..
+
+
+Alter table statement - To add new column to a table, Drop the column from the table, Decrease or increase the size of the column, Change the data type of the column.
+
+
+Modifying the column
+Ex: ALTER TABLE Employee MODIFY salary number(10,2);
+Table Altered.
+
+
+Rename and Drop a Column
+Using the alter statement we can rename a column and also the drop any column.
+
+
+
+The above statements renames the column name salary to em_sal anddrops column age
+__________________________________________________________________
+ALTER COMMAND EXAMPLE**********************
+
+create table Employee (EmployeeID number(6), Firstname varchar(5), LastName varchar(5), Salary number(5), Experience(2));
+
+desc Employee;
+
+alter table Employee add (City varchar(5), PhoneNo varchar(10));  #Adding new column to the table
+desc Employee;
+
+alter table Employee modify (City varchar(10));  #Increasing the size of a table
+desc Employee;
+
+alter table Employee modify PhoneNo number(10); #Changing datatype of the column
+desc Employee;
+
+__________________________________________________________________
+
+DDL statements : TRUNCATE , DROP , RENAME
+
+
+Drop table :
+Deletes table entirely from the database.
+DROP TABLE Employee;
+#Drop table statement is used to drop columns, tables, functions, procedures, views, synonym, tablespaces and so on.
+___________________________________________________________________
+EXAMPLE OF DROP:
+
+create table Employee1 (EmployeeID number(8), FirstName varchar(8), LastName varchar(8), Salary number(5), city varchar(8), PhoneNo number(10));
+desc Employee1;
+alter table Employee1 drop column Salary;   #Deleting column salary from table
+desc Employee1;
+alter table Employee1 drop (City, PhoneNo);
+desc Employee1;
+drop table Employee1;   #Deleting whole table from the database
+___________________________________________________________________
+
+Renaming a Table:
+Changing the name of a table.
+RENAME Employee to Emp_table;
+___________________________________________________________________
+RENAME EXAMPLE:
+
+rename Employee to Employee3;           #Renaming Employee table to Employee3
+desc Employee;
+desc Employee3;   
+___________________________________________________________________
+
+TRUNCATE TABLE:
+
+Truncate Table statement is used to delete all the rows from table permanently
+Remove all the rows and resets schema of the table.
+
+___________________________________________________________________
+TRUNCATE EXAMPLE:
+
+create table Employee12 (EmployeeID number(8), FirstName varchar(8), LastName varchar(8), Salary number(10));
+insert into Employee12 values (123, 'tony', 'stark', 350000);
+insert into Employee12 values (124, 'steve', 'rogers', 450000);
+insert into Employee12 values (125, 'john', 'cena', 550000);
+insert into Employee12 values (126, 'jack', 'zack', 650000);
+
+select * from Employee12;
+truncate table Employee12;            #remove all the data from the table
+select * from Employee12;
+desc Employee12;
+truncate table Employee12 reuse storage;
+___________________________________________________________________
+
+DQL*************************************************************
+
+create table person (NAME varchar(10), CITY varchar(10), STATE varchar(5),  AGE number(2));
+insert into person values ('ravi','HYD','TG',27);
+insert into person values ('sita','Indore','MP',28);
+insert into person values ('sourabh','Bihar,'UP',26);
+insert into person values ('pratham','HYD','MH',25);
+insert into person values ('suresh','vizag','AP',24);
+
+#DISTINCT STATEMENT******************************
+select * from person;
+select distinct city from person;  #Distinct: It will give unique values from the column
+
+#AND and OR operators********************************
+
+select * from person where city='HYD' and Age=27;  #AND operator
+select * from person where city='HYD' or Age=27;  #OR  operator
+
+#ORDER STATEMENT********************************
+select * from person order by age;      #It will arange the data in ascending order
+select * from person order by age desc; #It will arrange the data in descending order
+select city,count(city) from person group by city;
+
+#CONCATENATE OPERATOR*************************
+create table Employee (EMPID number(4), NAME varchar(10), CITY varchar(4), SALARY number(10));
+insert into Employee values (101,'rajyu','HYD',100000);
+insert into Employee values (102,'dev','VZA',500000);
+insert into Employee values (103,'sita','MUM',400000);
+insert into Employee values (104,'ram','CHE',300000);
+insert into Employee values (105,'meena','IND',200000);
+
+select * from Employee;
+select 'rajyu' || ' ' || 'sita' from dual;
+
+_________________________________________________________________________________________
+
+DML****************************************************************
+
+INSERT COMMAND:
+Used to add rows of data to a table.
+We can add rows of data to a table in multiple ways.
+
+SIMPLE INSERT METHOD*******
+
+create table person (personID number(3), Name varchar(10), Age number(2), City varchar(6), State varchar(6), PIN number(6));
+insert into person values(1,'rama',30.'HYD','TG',123456);
+select * from person
+
+INSERTING PARTIAL RECORD*******
+
+insert into person (personID, Name, Age, City, State, PIN) values(2,'sita',20,'HYD','TG',123456);
+select * from person;
+
+INSERTING MULTIPLE RECORDS USING SINGLE STATEMENT*******
+
+insert all
+into person values(3,'radha',20,'vizag','AP',439389)
+into person values(4,'raja',23,'vja',UP',2839247)
+into person values(5,'riya',29,'ujjain','MP',2490247)
+select * from dual;
+
+select * from person;
+
+--------------ALTERNATE QUERY-------------------
+insert into person  (personID, Name, Age, City, State, PIN) values (6,'jiya',80,'Indore','MP',453002), (7,'miya',90,'london','UK',2842948), (8,'Diya',60,'bihar','UP',453002);
+
+select * from person;
+
+SELECT COMMAND***********************
+
+select personID, Name from person;            #Selecting specific column
+select personID, Name from person where State='UP';
+select personID, State, Name from person where Name like 'r%';    #Selecting column where name starts with 'r'
+select personID, State, Name from person where Name like '%a';   #Selecting column where name ends with 'o'
+select personID, Name from person where Age is not null;  #Using null statement
+select personID, State from person where Age between 20 and 30;
+
+
+UPDATE COMMAND*****************
+update command is used to change or modify data of one or more rows in a table
+
+update person set personID =99 where Name='rama';   #Changing personID to 99
+select * from person;
+update person set personID =100, City='VJA' where Name='rama';
+select * from person;
+
+DELETE COMMAND******************
+Used to delete one or more records from a table
+Is not auto commit
+
+delete from person where personID=2;   #deleting particular records
+select * from person;
+delete from person;                                 #deleting every rows of data
+select * from person;
+
+
+TCL*********************************
+Transaction Control Language
+
+create table Add_customer (CustomerID int PRIMARY KEY, NAME char(10) not null, city char(5), state char(5) not null, country char(8) not null);
+insert intp Add_customer values(1,'rama','HYD','TG','INDIA');
+insert intp Add_customer values(2,'krish','VJA','AP','INDIA');
+insert intp Add_customer values(3,'vishnu','INDR','MP','INDIA');
+select * from Add_customer;
+set linesize 900 pagesize 900;    #changing the alignment of the table
+select * from Add_customer;
+
+COMMIT STATEMENT***********
+To end your current transaction
+To make permanent all changes performed in the transaction
+To erase of savepoints in the transaction and to release transaction locks
+
+commit;
+
+ROLLBACK COMMAND**********
+To restore the database to last committed state
+Used with savepoint command to jump to a savepoint in a transaction
+
+delete from Add_customer where customerid =3;
+select * from Add_customer;
+rollback;
+select * from Add_customer;
+update Add_customer set name='ramu' where customerid=3;
+select * from Add_customer;
+rollback;
+select * from Add_customer;
+
+SAVEPOINT STATEMENT****************
+
+savepoint a;
+insert into Add_customer values (4,'makhesh','hyd','tg','INDIA');
+savepoint b;
+insert into Add_customer values (5,'rajesh','che','tn','INDIA');
+select * from Add_customer;
+rollback to b;
+select * from Add_customer;
+rollback to a;
+select * from Add_customer;
+
+
+
+
+
+
+
+

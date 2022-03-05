@@ -1,0 +1,72 @@
+BUILD AUTOMATION TOOLS: MAVEN, MSBUILD, ANT, GRADLE
+
+BUILDING THE CODE
+Code is getting converted into the executable file. like; .jar, .var, .exe
+
+MAVEN SUPPORTS
+Java, PHP and some other languages.
+
+SRC Directory
+pom.xml file
+
+MAVEN is java based tool.
+Java needs to be installed initially.
+
+Global Repository: It have lots of dependencies
+
+Mention dependecies into the pom.xml file.
+COMMANDS--------------------------------
+hostname maven
+bash
+apt update
+java --verison
+apt install maven -y
+mvn --version
+java --version
+
+mvn archetype:generate #List of sample maven projects will appear
+
+pom.xml file contains -------------------
+group id - Package name; domain name  ----
+artifact id - Project name                       -----|---> pom.xml (config file) + some dependecies
+version - version number                        ----
+-------------------------------------------
+
+#Select archtype sample project number. for ex; 1835
+#Select the version
+#Define group ID. for ex; com.ash
+#Define artifactID. for ex; myporj
+#press enter x2
+
+ls
+cd myproj/   #pom.xml and src file are available here
+ls
+apt install tree
+tree              #gives directory structure in a tree format
+
+cat src/main/java/com/raman/App.java
+cat src/test/java/com/raman/AppTest.java    #unit test cases
+
+cat pom.xml0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

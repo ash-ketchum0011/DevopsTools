@@ -1,0 +1,90 @@
+--Create a global config file
+git config --global user.name ashlesh
+git config --global user.email ashleshkul@gmail.com
+cat /root/.gitconfig
+
+
+--Difference between two commits
+git diff commitID1 commitID2
+
+
+--To create tag on a commit ID
+git tag -a <tagname> -m 'message' <commit ID>
+
+--Moving these tags to remote repository
+git push --tags
+git push origin <tag_name> #To push a single tag
+
+
+--To delete a tag
+git tag -d <tagname>
+
+
+--To list all tags
+git tag
+
+
+--Command to see the content of the commit
+git show <commit ID>
+git show <tag name>
+
+
+--To remove untracked/unstaged files
+git clean -n  #(dry run)It will the files after taking a final consent
+git clean -f  #(forcefully)It will delete the file without any consent
+
+
+--To ignore some files while committing
+vi .gitignore
+#enter file extensions like: .css, .py, .java
+
+
+-- Log command with grep
+git log --grep "any keyword to find the file"
+
+
+--Stash commands
+#Stash command hides the file in stage area
+git stash
+git stash list #It will show the stash items with {0},{1}...
+git stash apply stash@{0}
+git stash clear
+
+============================================
+--RESET command
+git reset <filename>  #It will bring the file from staging area to untracked area
+git reset .   ##It will bring the files from staging area to untracked area
+
+
+--REVERT command
+git revert <commit ID>
+#files change back to the commit without any deletion of the content and new commit will get created with new commit ID. Thus version control history moves forward while the state of the files moves backward.
+#git commit can also be used to do similar things but it deletes the last commit while doing this.
+
+
+--More of GIT RESET
+
+git reset HEAD~1  #last one commit will be deleted
+git reset HEAD~2  #last two commit will be deleted
+
+git reset --mixed HEAD~1 #It will move commit to the untracked area
+git add .
+git commit -m "txt is added"  #It will commit that file again
+
+git reset --soft HEAD~1 #It will move commit to the stage area
+git commit -m "txt is added" #It will commit that file again
+
+git reset --hard HEAD~1 #It will delete it permanently
+==============================================
+
+
+---Difference between rebase and merge:
+Rebase put all the files from master first which are came to it after update. Ex: m1 m2 m3 m4 f1
+Merge will put files in a sequence. Ex: m1 m2 m3 f1 m4 
+
+If you are in feature branch preference is given to rebase command 
+If you are in master branh preference is given to merge command 
+
+
+--To resolve the merge conflict
+git mergetool --tool=vimdiff  #or(vi app.java)

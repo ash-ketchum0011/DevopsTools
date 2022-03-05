@@ -1,0 +1,265 @@
+TKINTER******************** 
+
+Other python GUI libraries: wxPython, PyQt, JPython
+
+-------------------
+import tkinter
+from tkinter import *
+
+win = Tk()                                     #A blank window will get created
+win.geometry("400x400")             #Dimensions of the window
+win.mainloop()                              #every line of code remains under this loop
+
+-----------------------
+
+Pack Method_______________________
+
+import tkinter
+from tkinter import *
+
+win = Tk()              
+win.geometry("400x400")                     
+b= Button(win,text='button')             #Declaring a button
+b.pack()                                            #Pack: Method to put the button somewhere on the window
+win.mainloop()   
+
+Grid Method_______________________
+
+import tkinter
+from tkinter import *
+
+win = Tk()              
+win.geometry("400x400")                     
+b= Button(win,text='button')             
+b.grid(row=1,column=1)            #Declaring the position of the button on the window via R & C
+b2= Button(win,text='cancel')
+b2.grid(row=10,column=10)                                         
+win.mainloop()
+
+
+Place Method________________
+
+import tkinter
+from tkinter import *
+
+win = Tk()              
+win.geometry("400x400")                     
+b= Button(win,text='button')            
+b.place(x=100,y=200)             #Declaring the position of the button on the window via graphics
+b1=Button(win,text="cancel")
+b1.place(x=300,y=280)                                         
+win.mainloop()
+
+-----------------------------
+#Adding command:
+
+import tkinter
+from tkinter import *
+
+win = Tk()           
+def pr():
+    print("hi")   
+win.geometry("400x400")                     
+b= Button(win, text='button', command=pr) #pr function will print 'hi' whenever button pressed  
+b.place(x=100,y=200)                                            
+win.mainloop()
+
+
+-------------------------------------
+#pad command:
+
+import tkinter
+from tkinter import *
+
+win = Tk()           
+def pr():
+    print("hi")   
+win.geometry("400x400")                     
+b= Button(win, text='button', command=pr, padx=20, pady=50) #pad:increases button size      
+b.place(x=100,y=200)                                            
+win.mainloop()
+
+---------------------------------------
+#activeforeground : It will change the color of button when pressed
+
+import tkinter
+from tkinter import *
+
+win = Tk()           
+def pr():
+    print("hi")   
+win.geometry("400x400")                     
+b= Button(win, text='button', command=pr, padx=20, pady=50, activeforeground="red")       
+b.place(x=100,y=200)                                            
+win.mainloop()
+
+---------------------------------------|
+---------------------------------------|
+
+#Canvas
+
+import tkinter 
+from tkinter import *
+ win = Tk()
+c=Canvas(win,height=250,width=300,bg='blue')
+c.pack()
+win.mainloop()
+
+-------------------------------------
+
+#ARC
+
+import tkinter 
+from tkinter import *
+ win = Tk()
+c=Canvas(win,height=250,width=300,bg='blue')
+cordi = 10,50,240,210
+arc = c.create_arc(cordi,start=0,extent=150,fill='red')
+c.pack()
+win.mainloop()
+
+
+--------------------------------------
+
+#LINE
+
+import tkinter 
+from tkinter import *
+win = Tk()
+c=Canvas(win,height=250,width=300,bg='blue')
+cordi = 10,50,240,210
+arc = c.create_arc(cordi,start=0,extent=150,fill='red')'
+line = c.create_line(10,10,200,200,fill='white')
+c.pack()
+win.mainloop()
+
+-----------------------------------
+
+#Check Button
+
+import tkinter 
+from tkinter import *
+win = Tk()
+cb = Checkbutton(win, text='Music', offvalue=0, onvalue=1, height=5,width= 10)
+cd.pack()
+cb1 = Checkbutton(win, text='Value', offvalue=0, onvalue=1, height=5,width= 10)
+cd1.pack()
+win.mainloop()
+
+#Assigning the value to a variable:
+
+import tkinter 
+from tkinter import *
+win = Tk()
+c1=IntVar()
+c2=IntVar()
+cb = Checkbutton(win, text='Music', offvalue=0, onvalue=1, height=5,width= 10,variable=c1)
+cd.pack()
+cb1 = Checkbutton(win, text='Value', offvalue=0, onvalue=1, height=5,width= 10variable=c2)
+cd1.pack()
+win.mainloop()
+
+-----------------------------------
+
+#Radio Button: one option can be chosen a time, but if 'value' of all the r is same all will get selected at a time 
+
+import tkinter 
+from tkinter import *
+win = Tk()
+var =IntVar()
+r1 = Radiobutton(win, text='Option1', variable=var, value=1)
+r1.pack()
+r2 = Radiobutton(win, text='Option2', variable=var, value=2)
+r2.pack()
+r3 = Radiobutton(win, text='Option3', variable=var, value=3)
+r3.pack()
+win.mainloop()
+
+-----------------------------------------------
+-----------------------------------------------
+#Label, Entry, Text
+
+import tkinter 
+from tkinter import *
+win = Tk()
+l=Label(win,text='Username')
+l.pack(side=LEFT)
+e=Entry(win)
+e.pack(side=RIGHT)
+t=Text(win)                                       #This will create a text window
+t.insert(INSERT,'Hello')                   #Text can also be inserted from here also
+t.pack()
+win.mainloop()
+
+
+Mini Calculator***************
+#get method #functools library #label.config method
+
+import tkinter 
+from tkinter import *
+from functools import partials
+
+win = Tk()
+
+def sum(label,x1,x2):
+    n1= (x1.get())                                    #'get'is to take the values from the entries
+    n2= (x2.get())
+    sum= int(n1)+int(n2)
+    label.config(text='sum is: %d' %sum)
+    return
+
+l1=Label(win,text='First number')
+l1.grid(row=1, column=0)
+l2=Label(win,text='Second number')
+l2.grid(row=2,column=0) 
+label =Label(win)
+label.grid(row=3,column=2)
+
+x1 = StringVar()
+x2= StringVar()
+
+e1 = Entry(win,textvariable=x1)
+e1.grid(row=1,column=2)
+e2 = Entry(win,textvariable=x2)
+e2.grid(row=2,column=2)
+
+sum=partial(sum,label,x1,x2)
+
+button = Button(win,text='calculate',command=sum)
+button.grid(row=3,column=0)
+
+win.mainloop()
+
+_____________________________________
+_____________________________________
+
+#WINDOWS AND FRAMES
+
+import tkinter
+from tkinter import *
+
+win= Tk()
+frame= Frame(win)
+frame.pack()
+
+frame2= Frame(win)
+frame2.pack(side=BOTTOM)
+
+rb = Button(frame, text='Red',fg='red')
+rb.pack(side=LEFT)
+
+gb = Button(frame2, text='Green',fg='Green)
+gb.pack(side=BOTTOM)
+
+win.mainloop()
+
+
+
+
+
+
+
+
+
+
+

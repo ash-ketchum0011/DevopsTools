@@ -1,0 +1,76 @@
+FUNCTIONS IN SQL-------------
+
+-----SINGLE ROW FUNCTIONS-----
+----Character Functions----
+Lower: alpha character arguments to lower characters
+Upper: alpha character arguments to upper characters
+Initcap: First letters of alpha character arguments to uppper case
+
+Character Manipulation Functions
+concat 
+substr
+length 
+instr
+trim 
+replace 
+lpad 
+rpad
+
+----Numeric Functions----
+Trunc
+select TRUNC(454.789,1) as trunk from dual; ---> 454.7
+
+Ceil---
+select ceil(300.3) as ceil from dual; --> 301
+
+Sqrt---
+select SQRT(144) as sqrt from dual; --> 12
+
+Mod
+select mod(6,5) as mod from dual; --> 1
+
+Round---
+select ROUND(78.98) from dual; ---> 78
+select ROUND(454.789,2) as round from dual; ---> 454.79
+
+Power---
+select POWER(3,3) as power from dual; ---> 27
+
+Abs---
+select ABS(-100) as abs from dual; ---> 100
+
+Floor---
+select FLOOR(300.3) as floor from dual ---> 300
+
+-----Generic Functions-----
+create table ITEM(ItemID varchar2(20), ItemName varchar2(20), ItemPrice float(126), ExpiryDate date, ItemStatus varchar2(30));
+desc ITEM;
+insert into ITEM (ItemID, ItemName, ItemPrice, ExpiryDate, ItemStatus) values (sta_01, pen, 10, null, available), (cos_02, lotion, 200, 01-Dec-17, available), (cos_03, kohl, 190, null, not available), (sta_04, notepad, 190, null, not available);
+select * from ITEM;
+
+#NVL AND COALESCE COMMAND:
+select ItemID, ItemName, ItemPrice, NVL(ExpiryDate, SYSDATE) as ExpiryDate from Item;
+select ItemID, ItemName, ItemPrice, COALESCE(ExpiryDate, SYSDATE) as ExpiryDate from Item;
+
+#NVL2 COMMAND:
+select ItemName, NVL2(ExpiryDate, 'Non Perishable', 'Perishable') as type from ITEM;
+
+#NULLIF COMMAND: 
+select ItemID, ItemName, nullif(ItemPrice, greatest(200,ItemPrice)) as price from ITEM;
+
+
+-------Conversion Functions-------
+Helps to convert one data type to another.
+
+select TO_CHAR(200,'000099') as toch from dual; ---> 000200
+select TO_CHAR(sysdate,'yyyy/mm/dd') as sys_ch from dual; ---> 000200
+
+select TO_NUMBER('989') as num from dual; ---> 989
+
+select TO_DATE('2016/10/11','yyyy/mm/dd') as Date from dual; ---> 11-oct-2016
+
+
+
+
+
+

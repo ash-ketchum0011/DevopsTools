@@ -1,0 +1,4 @@
+apt install maven -y
+mvn --version
+java --version
+mvn archetype:generate

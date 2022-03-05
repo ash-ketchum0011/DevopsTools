@@ -1,0 +1,154 @@
+JENKINS**************
+Most popular toool to create a CI/CD pipeline. Other CI/CD pipeline tools are: Teamcity, Gitlab, Github.
+Open source and developed in JAVA.
+Plugins are the most important part of the jenkins. There are lots of plugins available(plugins are used to automate: there are github plugins, maven plugins,etc).
+
+MACHINE
+sudo su
+hostname jenkins
+vi /etc/hostname  #jserver
+bash
+apt update
+apt install maven -y       #Java will automatically get installed with it
+java --version
+mvn --version
+wget -qO - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
+sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+sudo apt-get update
+
+sudo apt-get install jenkins
+systemctl status jenkins
+cat /etc/passwd | grep jenkins    #A user is created and which can be through this
+vi /etc/sudoers                           #Providing sudo permission to a user
+**************************************************************************
+#below the root ALL=''''''''
+#paste this-> jenkins ALL=(ALL) NOPASSWD: ALL 
+**************************************************************************
+#8080 port number is used to accessing the jenkins portal and that can be changed
+cat /etc/default/jenkins  #That port number is available inside this file
+
+#Copy <machines IPaddress>:8080 and paste it into the browser
+
+cat /var/lib/jenkins/secrets/initialAdminPassword
+#copy this password and paste it inside the "Administrator password block" -> Press "continue" -> click on"suggested plugins" -> create user name and password
+JENKINS GUI
+New item -> enter item name -> freestyle project -> ok -> description(optional) -> scroll down "Build"-execute shell-echo "Hello world" -> click on "save"->click on "Build Now"
+
+Build Trigger: To manage/schedule the time at which the Job is build
+Post build actions: To queue the building of jobs
+
+Email Notifier:
+click on "Manage Jenkins"->"Configure system"->Scroll down to "Email noti."
+
+For Practicing Git and maven manually and using Plugins use this website: gtihub.com/onlineTrainingguy/jenkinscicd
+
+Practicing the Jenkins Manually**********
+
+Git manually: use below given commands in linux shell
+ls /var/lib/jenkins/workspace/Githubjob
+cd /var/lib/jenkins/workspace/Githubjob
+cat src/main/java/com/raman/App.java
+
+Maven-job manually:
+Paste this in- Execute shell(command)	
+cd /var/lib/jenkins/workspace/Githubjob
+sudo mvn clean package
+
+Practicing the Jenkins using Plugins**********
+Manage jenkins -> Manage Plugins -> Install "Maven Integration" plugin -> Install without restart
+Manage jenkins -> Global config. -> scroll down "Add maven" -> click on "save" #Now maven will appear in the new items window
+Click on "New item' -> Maven Project ->  CHoose "Git project" <Paste url> -> source code Management "git" <paste url> -> Under Build (Goals and options (write"clean package")) -> click "save"
+
+Open Linux shell:
+cd ..  #workspace
+ls #maven-project will apear in workspace after some time
+cd  Maven-project
+ls
+ls
+ls target/
+ls target/ # .jar file is created
+ls
+apt install docker.io -y
+docker --version
+
+#Create new job
+Dockerjob(Freestyle project) -> Build(Execute shell(command(
+cd /var/lib/jenkins/workspace/Maven-Project
+sudo cp target/myproj-1.0-SNAPSHOT.jar .
+sudo docker build . -t img$BUILD_NUMBER         #Build number varibale will give how many times a job is build
+sudo docker container run -it -d img$BUILD_NUMBER
+click on "save"
+
+Linux shell:
+docker images
+docker ps -a
+docker logs <containerID>
+
+Maven-project-> Manage Config. -> Post build action(dockerjob)
+
+
+
+copy the http url of your jenkins (for example: http://3.110.123.234:8080)
+go to the github - > settings ->  add webhook -> payloadURL(http://3.110.123.234:8080/github-webhook/) -> add webhook  #So whenver the load is done webhook interact with jenkins that new load is happen and then jenkin will trigger its job
+
+Go to maven-job -> manage config. -> build triggers-> select "Github hook trigger for GITScm polling" -> save
+Now try to the change the code in the github repo
+#All the task is automatically done
+linux shell:
+docker images --all
+
+docker ps -a
+docker logs <containerID>
+
+Creating CI/CD Pipeline***********
+Manage jenkins - > Manage plugins ->search "build pipeline" plugin -> INstall plugin -> go back dashboard -> click on "+" near "All" ->Name "CICD"-> lcick on "Build pipeline View" -> OK
+
+New page will appear ->Scroll down->Upstream/downstream config.-> select initial job(Maven-project) -> OK
+
+Now try to the code in GITHUB repo
+#It will automatically execute
+
+Linux Shell:
+docker images
+docker ps -a
+docker logs <ContainerID>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

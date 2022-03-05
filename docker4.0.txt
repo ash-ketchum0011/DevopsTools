@@ -1,0 +1,212 @@
+-------------------------Docker Compose------------------------
+-----docker compose produce micro-serivecs on single machine while docker swarm produce them on cluster level
+
+Docker compose : Its is a micro service approach(Using components of a service as a different services), container management.
+
+YAML(yaml ain't markup language): used in Docker-compose, ansible, kubernetes, It is a python based language, indentation is very important
+To create services
+diffferent types of services available
+keywords for ansible kubernetes and docker compose are different
+
+Docker compose file: 
+docker-compose.yml 
+
+docker-compose up -d #The creation of the container starts from here
+#bridge network get created #containers run on this bridge network
+docker-compose scale db=3 #It will scale up the services on the single system but not on the cluster level #if we mention 3 then it will create three containers of db 
+
+sudo su
+TO INSTALL DOCKER COMPOSE-----------------
+sudo curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose #To install docker compose
+
+chmod +x /usr/local/bin/docker-compose #To give execute permission
+docker-compose --version #To see if docker compose is installed
+docker ps -a #checking if any container is running
+docker volume ls
+docker images
+vi docker-compose.yml
+--------------------------------------------------------------------------------------------------
+#copy-paste this example:
+version: '3.3' #version of docker compose
+
+services: #services that we need
+   db:   #database service
+     image: mysql:5.7
+     volumes:
+       - db_data:/var/lib/mysql #everything will be mapped to this db_data volume directory
+     restart: always #container will restart if someone will stopped it
+     environment:    
+       MYSQL_ROOT_PASSWORD: somewordpress
+       MYSQL_DATABASE: wordpress
+       MYSQL_USER: wordpress
+       MYSQL_PASSWORD: wordpress
+
+   wordpress:  #wordpress service
+     depends_on: #This wordpress service depends upon the db service, so until unless the db container is created 
+       - db
+     image: wordpress:latest
+     ports:
+       - "8000:80"  # Host machines Port: 8000, containers Port: 80
+     restart: always
+     environment:
+       WORDPRESS_DB_HOST: db:3306
+       WORDPRESS_DB_USER: wordpress
+       WORDPRESS_DB_PASSWORD: wordpress
+       WORDPRESS_DB_NAME: wordpress
+volumes:     #defining a volume
+    db_data: {}
+--------------------------------------------------------------------------------------------------
+docker network ls
+docker-compose up -d #It will start the creation
+docker ps
+docker network ls #new network get created 
+docker inspect <containerID>
+docker ps
+#copy <host machines IP>:8000 and paste in browser
+docker-compose scale db=3 #one is all already running and two new will be created
+docker ps
+docker-compose down #It will delete all containers and network as well
+####On a single service or on a single docker compose file we are maintaining our containers#####
+
+----------------------------------DOCKER SWARM-----------------------------------------
+-Cluster :Cluster means you must have a master server whether you have worker node or not
+-Group of computer that can talk with each other.
+-There is master node, purpose of the cluster: If you want to run multiple containers and you want to run it on multiple computers so to make a relation between them there is master server.
+-Creating a master server:
+docker swarm init #Run this command #This will make the particular machine the master node or server
+other nodes are called the worker nodes
+
+Docker swarm : Cluster Orchestration Tool
+-Container orchestration
+-Management of containers (desire state = current state)
+
+AUTHENTICATION
+---At the  docker swarm we also define the token. certificate authority data is embedded into this token and this token is generated inside the master node.
+with the help of this token all the worker nodes are joined with the master node.
+
+---Overlay Network Layer: 
+Special type of network layer which get created during the creation of this cluster. This layer is only for docker swarm.This network layer is spreaded along the master and worker nodes
+
+-Every machine have a load balancer whether it is a master or worker
+-Ingress is a special type or subtype of overlay network 
+-whenever the container is created it is created on network level not on worker node level
+-------------------------------------------------------------------------------------------------
+
+Master
+sudo su
+hostname manager
+bash
+apt update && apt isntall docker.io -y
+
+Worker1
+sudo su
+hostname worker01
+bash
+apt update && apt isntall docker.io -y
+
+
+Worker2
+sudo su
+hostname worker02
+bash
+apt update && apt isntall docker.io -y
+
+------------------
+Master
+docker --version
+docker swarm init #Copy eg. 'docker swarm join --token SWMTKN-1................' to create the worker nodes
+
+Worker1
+<copy paste the join command from the Master>#It will become a worker node #eg. 'docker swarm join --token SWMTKN-1................'
+
+Worker2
+<copy paste the join command from the Master>#It will become a worker node #eg. 'docker swarm join --token SWMTKN-1................'
+
+-----------------
+Master
+docker node ls #all the node will appear
+docker network ls #overlay network : ingress is been created#This network created on all the machines
+
+Worker1
+docker network ls
+
+-Two containers communicate to each other via bridge network and Two machines communicate to each other via overlay network
+-Every management command only work from the master node
+
+Master
+docker network create -d overlay myoverlay
+docker network ls #A network is created which is on the top of overlay network
+-----------------------------------------------------------------------------------------------
+
+SERVICE:
+Service is responsible for creating the containers on docker swarm cluster
+If you create a container via service replica will be automatically created (where replica=1 by default)
+
+MASTER
+
+docker service --help
+
+-----DOCKER SWARM VISUALIZER------
+To see the number of Nodes and containers in a GUI over Browser
+
+docker service create  --name=viz --publish=8080:8080/tcp  --constraint=node.role==manager --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock dockersamples/visualize #creating a service
+#<copy host machines IP address>:8080 #Paste it into the browser #you will see the swarm cluster
+--------------------------------------------------------
+
+docker service create --name=webservice --replicas 1 --publish 80:80 -d nginx #publish is for port forwarding #replica means one more container is been created #so replica 1 means one container should run all the time 
+docker service ls
+#check the browser where this webservice is running
+docker service ps webservice #check where this webservice is running 
+docker ps webservice
+
+WORKER2
+docker ps
+docker rm -f <container ID>
+#now it will automatically get created to match the desire state which is one
+
+MASTER
+docker service scale webservice=3 #now three containers will be running in the cluster
+docker service ls#replica is changed to 3/3
+docker service scale webservice=1#2 containers are deleted
+docker service rm webservice #It will remove the service and the container related to this service will also get deleted
+
+docker service create --name myservice --network myoverlay --replicas 1 -d nginx
+docker service rm myservice
+
+------To run the service only on Master/Manager node-------
+docker service create --name webservice -d --constraint="node.role==manager" --publish=80:80 nginx
+docker service scale webservice=3 #This services will create on master node only
+docker service rm webservice
+
+
+------To run the service only on Worker node-------
+docker service create --name webservice -d --constraint="node.role==worker" --publish=80:80 nginx #Running this service only on worker node
+docker service scale webservice=3#This services will create on worker nodes only
+docker service rm webservice
+
+-------------Updating service------------
+docker service create --name redis --replicas 5 --update-delay 10s redis:3.0.6 #creating service first #service name is redis #There will be 10 sec of delay while update happens from 3.0.6 to 3.0.7 #Update takes place according to the blue green process
+docker service ls
+docker service ps redis
+docker service update redis --image redis:3.0.7 #update takes place here#update happens one by one#old containers get deleted and new one get installed
+#If you try to update to a version which doesn't exist then one container will get delete while trying to update but others stays as they are because the first container failed to update
+docker service update redis --image redis:21
+docker service logs redis #To check if there is something wrong happen
+docker service ls
+docker service rollback redis  #To get the deleted container back
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

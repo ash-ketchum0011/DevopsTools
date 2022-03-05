@@ -1,0 +1,279 @@
+Master node             worker node1             worker node2
+  sudo su                      sudo su                         sudo su
+Editors for YAML: 1. Notepad++ 2. Visual Studio code
+************************YAML SCRIPT EXAMPLE FOR KUBERNETES*********************************
+apiVersion: v1                     #different for different resources
+kind: Pod                            #Resource name
+metadata:
+      name: pod1                  #Name of resource
+      labels:                         #user defined key-value pair
+           app: nginx-app
+spec:                                 #what is inside the pod
+      containers:
+      - name: c1
+        image: nginx
+*************************SAVING ABOVE SCRIPT AS nginx.yaml*****************************************
+*************COMMANDS  NEEDED TO USE THIS SCRIPT TO CREATE RESOURCES*********************
+kubectl create -f nginx.yaml #To start the creation using script
+#To create/apply changes or update: kubectl apply -f nginx.yaml
+kubectl delete -f nginx.yaml #To delete resource which is in yaml file
+kubectl get pods -o wide
+kubectl describe pod pod1    #Specific details of the pod
+kubectl get pod pod1 -o yaml #To get all the properties that are related to the pod
+kubectl edit pod pod1   #To edit pod
+kubectl exec -it pod1 -- bash #To go inside the pod
+kubectl delete pod pod1 #To delete the pod
+***********ABOVE MENTIONED COMMANDS ARE SIMILAR FOR ALL TYPE OF RESOURCES*************
+*******************STARTING TO USE THE COMMAND AND SCRIPTS FROM HERE**********************
+MASTER
+mkdir pods        #not mandatory to create the directory
+cd pods/
+vi nginx.yaml
+**********************COPY PASTE THE SCRIPT INSIDE THE nginx.yaml FILE****************************
+apiVersion: v1                     
+kind: Pod                           
+metadata:
+      name: pod1                  
+      labels:                        
+           app: nginx-app
+spec:                                
+      containers:
+      - name: c1
+        image: nginx
+*******************************************************************************************************
+kubectl create -f nginx.yaml
+kubectl get pods
+kubectl describe pod pod1
+kubectl get pod pod1 -o yaml    #Output in the yaml format
+kubectl edit pod pod1  #To change the containers property but this doesn't change the pod
+kubectl describe pod pod1
+kubectl get pod pod1 -o json
+kubectl get pods -o wide          #It will show on which node the pod is get created
+vi nginx.yaml
+*************************************EDITING THE LABEL *********************************************
+apiVersion: v1                     
+kind: Pod                           
+metadata:
+      name: pod1                  
+      labels:                        
+           app: nginx-app1
+spec:                                
+      containers:
+      - name: c1
+        image: nginx
+*******************************************************************************************************
+kubectl apply -f nginx.yaml #applying the changes #label changed from nginx-app to nginx-app1
+kubectl exec -it pod1 -- bash #Entering the pod
+ls
+curl localhost
+exit
+
+WORKER2
+docker ps
+
+MASTER
+kubectl delete -f nginx.yaml #deleting pod via yaml file
+vi nginx.yaml
+******************CREATING MULTIPLE CONTAINERS USING  YAML FILE*****************************
+apiVersion: v1                     
+kind: Pod                           
+metadata:
+      name: pod1                  
+      labels:                        
+           app: nginx-app1
+spec:                                
+      containers:
+      - name: c1
+        image: nginx
+     - name: c2
+       image: tomcat
+*******************************************************************************************************
+kubectl apply -f nginx.yaml
+kubectl get pods
+kubectl describe pod pod1
+kubectl exec -it pod1 -c c1 -- bash#To go inside a specific container
+curl localhost           #response from nginx
+curl localhost:8080 #response from tomcat
+cat /etc/host
+exit
+kubectl exec -it pod1 -c c2 -- bash
+curl localhost
+exit 
+
+**********************************Assigning POD to a node*********************************************
+kubectl get pods -o wide
+kubectl delete pod --all #deleting all the pods with a single command
+vi nginx.yaml
+***********CREATING POD ON WOKER NODE1 USING  YAML FILE************************************
+apiVersion: v1                     
+kind: Pod                           
+metadata:
+      name: pod1                  
+      labels:                        
+           app: nginx-app1
+spec:                                
+      containers:
+      - name: c1
+        image: nginx
+     nodename: kwn1 #Hostname of the worker node
+
+*******************************************************************************************************
+kubectl create -f nginx.yaml
+kubectl get pods -o wide
+kubectl delete pod pod1
+
+*************LABEL******************
+kubectl get nodes
+kubectl get nodes --show-labels
+kubectl get nodes --show-labels kwn1
+kubectl label nodes kwn2 env=prod
+kubectl get nodes --show-labels kwn2
+#Now we will create pod only in nodes which have label env=prod
+vi nginx.yaml
+***********CREATING POD IN PARTICULAR NODE WITH HELP LABEL USING  YAML FILE**************
+apiVersion: v1                     
+kind: Pod                           
+metadata:
+      name: pod1                  
+      labels:                        
+           app: nginx-app1
+spec:                                
+      containers:
+      - name: c1
+        image: nginx
+     nodeSelector:
+        env=prod
+*******************************************************************************************************
+kubectl create -f nginx.yaml
+kubectl get pods -o wide #The will get created on worker node only because it only have label env=prod
+
+*******************************↓↓↓↓↓↓↓↓NODEAFFINITY ↑ ↑ ↑ ↑ ↑ ↑ ***************************************
+Required during scheduling Ignored during Execution and Prefered during scheduling Ignored during Execution: First labels were checked if label matches then it get created inside that particular worker node but if label doesn't matches it will get created over any of the worker node randomly.
+*********************************Operators: in notin exist************************************************
+kubectl delete pod pod1
+kubectl label nodes kwn2 env=test --overwrite
+kubectl get nodes --show-labels
+vi nginx.yaml
+*******************DELETING EVERYTHING INSIDE THE FILE AND PASTING THIS**********************
+apiVersion: v1
+kind: Pod
+metadata:
+  name: podaffinity
+spec:
+   containers:
+   - name: nginx-container
+     image: nginx
+   affinity:
+     nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: env
+                operator: In  #checking two values of label this time test and stag
+                values:
+                - test
+                - stag
+*******************************************************************************************************
+kubectl create -f nginx.yaml
+kubectl get nodes --show-labels
+kubectl get pods -o wide
+kubectl delete pod --all
+vi nginx.yaml
+*******************DELETING EVERYTHING INSIDE THE FILE AND PASTING THIS**********************
+apiVersion: v1
+kind: Pod
+metadata:
+  name: podaffinity
+spec:
+   containers:
+   - name: nginx-container
+     image: nginx
+   affinity:
+     nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: env
+                operator: In  #checking two values of label this time test and stag
+                values:
+                - test1
+                - stag
+*******************************************************************************************************
+kubectl create -f nginx.yaml #test1 doesn't exist thats why it takes time to get created any random nodes
+kubectl get pods
+kubectl delete pod --all
+vi nginx.yaml
+*******************************************************************************************************
+apiVersion: v1
+kind: Pod
+metadata:
+     name: pod1
+spec:
+   containers:
+   - name: c1
+     image: nginx
+   affinity:
+           nodeAffinity:
+                   preferredDuringSchedulingIgnoredDuringExecution:
+                    - preference:
+                            matchExpressions:
+                             - key: size
+                               operator: In
+                               values:
+                                  - extralarge
+                      weight: 1
+********************************************************************************************************
+*****************************************TAINTED PROPERTY******************************************
+kubectl describe node kmaster #Taint is already defined inside the master
+#A pod cannot be created inside a node until unless they have specific schedule
+kubectl describe node kwn1 #Taint is none
+*********************Effects: NoSchedule, preferNoSchedule, NoExecute**********************************
+If there is at least one un-ignored taint with effect NoSchedule then Kubernetes will not schedule the pod onto that node.
+If there is no un-ignored taint with effect NoSchedule but there is at least one un-ignored taint with effect PreferNoSchedule then Kubernetes will try to not schedule the pod onto the node.
+If there is at least one un-ignored taint with effect NoExecute then the pod will be evicted from the node (if it is already running on the node), and will not be scheduled onto the node (if it is not yet running on the node).
+
+kubectl taint nodes kwn1 app=web:NoSchedule #Creating a taint
+kubectl describe node kwn1 #Taint is present with effect noschedule
+vi pod.yaml
+*******************************************************************************************************
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx
+  tolerations:
+  - key: app
+    operator: "Equal"
+    value: "web"
+    effect: "NoSchedule"
+********************************************************************************************************
+kubectl create -f pod.yaml
+kubectl get pods -o wide
+kubectl taint nodes kwn1 app- #This will remove the taint 
+kubectl describe node kwn1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

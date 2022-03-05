@@ -1,0 +1,346 @@
+ANSIBLE PLAYBOOK:
+#written in yaml format
+#Playbook is the name of the file like; 1.txt 3.txt
+#Plays--->Tasks-->modules
+#"---" indicates that the yaml file is started which is optional 
+
+AM
+cd /etc/ansible/
+cat hosts
+ls
+vi 1.yaml
+*******************************************************************************
+---
+  - name: play for running linux commands              #optional just for better understanding
+    hosts: webservers
+    tasks:
+      - name: to execute date command
+        command: date
+
+  - name: play for run a shell script in dbserver
+    hosts: dbservers
+    tasks:
+      - name: execute command.sh file
+        command: sh /home/ubuntu/command.sh
+
+*******************************************************************************
+vi /home/ubuntu/command.sh
+*******************************************************************************
+ls
+*******************************************************************************
+chmod +x /home/ubuntu/command.sh
+ansible-playbook 1.yaml --syntax-check      #To check the syntax
+ansible-playbook 1.yaml                       #To execute the file #A deprecation error appear
+vi ansible.cfg                                         #To fix the deprecation error
+# /deprecation <- type this and search for deprecation and change the deprecation_warnings = False
+ansible-playbook 1.yaml                       #Execute again
+vi 1.yaml
+*******************************************************************************
+---
+  - name: play for running linux commands              #optional just for better understanding
+    hosts: webservers
+    tasks:
+      - name: to execute date command
+        command: date
+        register: output                                       #It will store the output into variable"output"
+      - name: Printing value of output variable
+        debug:
+           msg: "{{ output.stdout }}"
+
+  - name: play for run a shell script in dbserver
+    hosts: dbservers
+    tasks:
+      - name: execute command.sh file
+        command: sh /home/ubuntu/command.sh
+        register: result
+      - name: Printing value of output variable
+        debug:
+           msg: "{{ result }}"
+*******************************************************************************
+ansible-playbook 1.yaml
+sh /home/ubuntu/command.sh
+vi /home/ubuntu/command.sh
+*******************************************************************************
+date
+*******************************************************************************
+ansible-playbook 1.yaml
+vi 2.yaml
+*******************************************************************************
+---
+  - name: play for running linux commands
+    hosts: webservers
+    tasks:
+      - name: Install apache
+        apt:                                                                 #Module name
+         name: apache2
+         state: present
+*******************************************************************************
+
+AC
+systemctl status apache2      
+apt purge apache2 -y                                                 # If apache2 is installed
+
+AM
+ansible-playbook 2.yaml
+vi 3.yaml
+*******************************************************************************
+---
+  - name: play for running linux commands
+    hosts: webservers
+    tasks:
+      - name: Install apache
+        service:                                                 #Service module to stop and start the apache2
+         name: apache2
+         state: stopped
+
+*******************************************************************************
+ansible-playbook 3.yaml
+
+AC
+systemctl status apache2
+
+AM
+cp 3.yaml 4.yaml
+vi 4.yaml
+*******************************************************************************
+---
+  - name: play for running linux commands
+    hosts: webservers
+    tasks:
+      - name: Install apache
+        service: 
+         name: apache2
+         state: started
+*******************************************************************************
+ansible-playbook 4.yaml
+
+AC
+systemctl status apache2
+
+AM
+vi 5.yaml
+*******************************************************************************
+---
+  - name: play for running linux commands
+    hosts: webservers
+    vars:                                                                    #Declaring a variable
+      test: testing
+    tasks:
+      - name: create a file
+        copy:                                                               #copy module
+          content: "{{ test }}"                                      
+          dest: /tmp/4.txt                                              #It will put the content into this file
+*******************************************************************************
+ansible-playbook 5.yaml
+
+AC
+cat /tmp/4.txt
+
+AM
+vi 6.yaml
+*******************************************************************************
+---
+  - name: play for running linux commands
+    hosts: webservers
+    vars_prompt:
+      name: test
+      prompt: Enter some value         #It will ask what value we want to give to the variable
+    tasks:
+      - name: create a file
+        copy:
+          content: "{{ test }}"
+          dest: /tmp/5.txt
+*******************************************************************************
+ansible-playbook 6.yaml
+#enter a value
+
+AC
+cat /tmp/5.txt
+
+AM
+vi 7.yaml
+*******************************************************************************
+---
+  - name: play for running linux commands
+    hosts: webservers
+    vars_prompt:
+      name: test
+      prompt: Enter some value
+    tasks:
+      - name: create a file
+        copy:
+          content: "{{ test }}"
+          dest: /tmp/5.txt         
+      - name: reading content 
+        command: cat /tmp/5.txt
+        register: output
+      - name: Printing if value is intelli
+        debug:
+          msg: "{{ output.stdout }}"
+        when: test=="intelli"                            #conditional statement
+*******************************************************************************
+ansible-playbook 7.yaml
+#enter value "intelli"
+vi 8.yaml
+*******************************************************************************
+---
+  - name: play for running linux commands
+    hosts: webservers
+    tasks:          
+      - name: creating directories
+        command: mkdir /tmp/"{{ item }}"
+        with_items:                                                   #loop statement
+          - dir1
+          - dir2
+          - dir3
+*******************************************************************************
+ansible-playbook 8.yaml
+
+AC
+ls -l /tmp
+
+*****************************ANSIBLE VAULT**********************************
+AM
+ls
+ansible-vault create 9.yaml
+#enter a password
+*******************************************************************************
+---
+  - name: play for running linux commands
+    hosts: webservers
+    vars:                                                                    
+      test: testing
+    tasks:
+      - name: create a file
+        copy:                                                               
+          content: "{{ test }}"                                      
+          dest: /tmp/4.txt                                           
+*******************************************************************************
+cat 9.yaml
+ansible-playbook 9.yaml
+ansible-playbook 9.yaml --ask-vault
+ansible-vault decrypt 9.yaml
+cat 9.yaml
+ansible-playbook 9.yaml
+ansible-vault encrypt 9.yaml
+cat 9.yaml
+ansible-vault decrypt 9.yaml
+
+*************************ANSIBLE ROLES*************************************
+#galaxy.ansible.com #Modules created by other people are available here
+ansible-galaxy install weareinteractive.apache2
+ls
+ls weareinteractive.apache2/
+
+AC
+systemctl status apache2
+apt purge apache2
+systemctl status apache2
+
+AM
+ls
+cd ..
+vi 10.yaml
+*******************************************************************************
+---
+ - name: Running Role
+   hosts: webservers
+   roles:
+            -weareinteractive.apache2                #Role will run from here
+
+*******************************************************************************
+ansible-playbook 10.yaml
+
+AC
+systemctl status apache2
+
+AM
+ls roles/
+cd roles/
+rm -ifr *
+ls
+
+*********Creating Our own role************
+AM
+ansible-galaxy init apache --offline
+ls
+tree apache/
+apt install tree
+tree
+vi apache/meta/main.yml                #change author or role name of your choice#optional
+cd apache/tasks/
+ls
+cat main.yml
+vi install.yaml
+*******************************************************************************
+---
+ - name: installing apache
+   apt:
+      name: apache2
+      state: present
+*******************************************************************************
+vi configure.yml
+*******************************************************************************
+---
+   - name: status
+     copy: src=status.txt dest=/tmp/status.txt
+     notify:
+       restart apache service
+   - name: send the file
+     copy: src=test.html dest=/var/www/html/test.html
+*******************************************************************************
+vi main.yml
+*******************************************************************************
+---
+# tasks file for apache
+- include: install.yml
+
+- include: configure.yml
+*******************************************************************************
+cd ..
+cd handlers/
+vi main.yml
+*******************************************************************************
+---
+  # handlers file for apache
+  - name: restart apache service
+    service: name=apache2 state=restarted
+*******************************************************************************
+cd ..
+cd files/
+touch status.txt test.html
+cd ..
+tree
+cd ..
+ls
+cd ..
+ls
+vi 10.yaml
+*******************************************************************************
+---
+ - name: Running Role
+   hosts: webservers
+   roles:
+         - apache
+*******************************************************************************
+
+AC
+apt purge apache2 -y
+systemctl status apache2
+
+AM
+ansible-playbook 10.yaml
+#If above return command doesn't work due to install.yaml or install.yml
+ls roles/apache/tasks/
+mv roles/apache/tasks/install.yaml roles/apache/tasks/install.yml
+ansible-playbook 10.yaml
+
+AC
+systemctl status apache2
+ls /var/www/html/
+
+AM
+tree roles/
+cat 10.yaml
+ls roles/
+ls roles/apache/

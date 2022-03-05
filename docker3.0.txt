@@ -1,0 +1,216 @@
+  #when container is deleted the data inside will lost
+#This can resolved by changing its storage path to a harddisk or cloud storage
+DOCKER STORAGE
+#There are three ways of storing:
+*1*tmpfs mount(Temparory file system)**
+#The data will be lost if it is in tmpfs if the container gets deleted
+docker container run -it --name c1 --mount type=tmpfs,destination=/app -d nginx #destination containers directory #'app' directory will created if doesn't exists (inside the container!!!)
+docker inspect c1 #under mount type is visible and there is no source
+docker exec -it c1 bash
+ls
+cd app
+touch 1 2 3 4
+exit
+docker rm -f c1 #At this point when container is deleted the data will be lost too so the files 1 2 3 4 are deleted too
+
+
+*2*Docker volume** #This volume is maintained by docker deamon
+#Even after the container gets deleted volume still remains safe and later this volume can be attached to the new container
+#This can be done by redirecting the path of the container storage to the new file 
+#Volume size can be restricted to some MB or GB and User access too
+
+docker volume --help #prune command is used when volume is unused
+docker volume ls
+docker volume rm demo-vol #removing the docker volume demo-vol
+docker volume ls
+ls /var/lib/docker/volumes/ #There is no volume
+docker volume create demo-vol
+ls /var/lib/docker/volumes/ #volume is been created under which there is one more directory with name _data
+ls /var/lib/docker/volumes/demo_vol/_data/
+#This volume or directory will only get deleted when docker will get deleted
+#Now creating a container and redirecting this volume to it
+docker container run -it --name c2 --mount source=demo-vol,destination=/logfiles -d ubuntu #logfile is the file with in the container #so we are redirecting the data to the demo-vol instead of logfiles
+docker exec -it c2 bash
+ls
+cd logfiles/
+touch 01.log 02.log
+ls
+exit
+ls /var/lib/docker/volumes/demo_vol/_data/
+docker volume inspect demo-vol
+docker inspect c2 #Under mount you can see type=volume, destination and source
+docker rm -f c1 c2
+docker ps -a
+ls /var/lib/docker/volumes/demo_vol/_data/ #both the log files are available here
+docker container run -it --name c1 --mount source=demo-vol,destination=/log -d centos #mounting the demo_vol to new container # repeate '--mount' to add more vol
+docker inspect c1
+docker exec -it c1 bash
+ls 
+cd log
+ls
+exit 
+#mounting the same volume to another container 
+docker container run -it --name c2 --mount source=demo-vol,destination=/testlog -d ubuntu
+docker exec -it c2 bash
+ls testlog/
+touch 03.log
+ls
+exit
+docker exec -it c1 bash
+ls log #Now you can see both containers have same volume connected to them
+
+*3*BIND MOUNT SYSTEM**
+#Directory is created into the host system and mounted to the container
+#This volume can be used as a shared drive and which can be used by other users also
+#This also can be used if you want to take a regular backup
+ls
+mkdir sharedrive
+docker container run -it --name c11 -v /home/ubuntu/sharedrive:/demo -d ubuntu #v is for bind mount
+ls sharedrive/
+docker exec -it c11 bash
+cd demo
+touch 1 2 3 4
+ls
+exit
+ls sharedrive/
+docker rm -f c11
+docker ps -a
+ls sharedrive/
+docker container run -it --name c22 -v /home/ubuntu/sharedrive:/demo -d centos
+ls sharedrive/
+docker exec -it c22 bash
+ls demo/
+
+                         (Docker volume)
+volume-------->Maintained by docker (File path: /var/lib/docker/volume/demo-vol/_data)
+                            |                                 (source = demo-vol)
+                            |                                 (destination = logfiles)
+container------>logfiles
+                            |
+                            |
+volume-------->Host system volume (File path: /home/ubuntu/sharedrive:/logfiles)
+                         (Bind mount)
+
+docker inspect c22 #Now see under mounting which type of storage device attached to the container #It will show the 'bind'
+#Mounting and unmounting of volume or directory is not possible only possible way is by removing the container
+
+****************************NETWORKING***********************************************
+#Container is inside Host machine and container get created on a docker network layer which is denoted by docker0 and this docker layer is on top the Host machine's network layer.
+#docker0 have a IP range called CIDR range and what ever container get created over this docker0 layer have a IP address between docker0's CIDR range.
+
+#dokcer0 network layer is called the Bridge-network or default network
+#If no network is defined for the container the container will work docker0 network layer
+#A container cannot run without network
+#With the help of same network layer containers can communicate with each other
+
+ip a #it will show all the IP addresses
+docker container run -it --name ash -d ubuntu
+ip a
+docker inspect ash #under the networks it will show the network type:bridge and IP address gateway is docker0 IP address or base IP address
+docker container run -it --name c33 -d ubuntu
+ip a
+docker inspect c33
+
+------------Now we will check whether the containers can communicate with each other or not----------
+docker exec -it ash bash 
+apt update
+apt install inetutils-ping -y
+ping <paste IP address of the other container> #It will show there is default networking between both the containers
+exit
+
+-------------Creating our own bridge network----------------
+Need of Own Bridge Network:
+To provide the isolation among the containers communication
+
+docker rm -f ash c33
+docker network --help
+docker network ls #shows all the networks
+docker network create  -d bridge br1       #d :driver #br1 :network name
+docker network ls
+ip a #It will show new network which is created
+
+Creating a container over this br1 network--------------
+docker container run -it --name c1 --network br1 -d ubuntu #Now the IP address of this new container will be in the CIDR range of the new network br1 that we created
+docker ps
+ip a #master will show the network under which the container is been created
+docker inspect c1 #check the IP address and compare it with the CIDR range
+docker container run -it --name c2 --network br1 -d ubuntu
+docker inspect c2  #check the IP address and compare it with the CIDR range
+docker rm -f c1 c2
+
+--------------------------RAMAN SHARMA' PHP WEB APP------------------------------
+----------we will see how a web application and mysql database communicates-----------
+@ramansharma95 pull mysql and webapp image from here
+docker pull ramansharma95/webapp
+docker pull ramansharma95/mysql
+
+docker container run -it --name web --network br1 -p 80:80 -d ramansharma95/webapp
+#copy paste your host machines/virtual machines IP address into the browser and see that the web app is running
+docker container run -it --name db --network br1 -d ramansharma95/mysql
+#create duplicate tab of the machine
+TAB1
+docker exec -it web bash
+cat /var/www/html/index.php
+
+TAB2
+docker exec -it db bash
+mysql -uroot -pwhizlabs #u for user name and p for password
+mysql> create database company;
+mysql> use company;
+mysql> create table employee(name varchar(30), mobile varchar(20));
+mysql> select * from employees;
+
+WEB-BROWSER
+enter the details required and see inside the database again
+
+docker rm -f web db
+docker network ls
+docker network rm br1
+
+#Now creating a container over host machine #using the host network
+#The IP address of the container will be the IP address of your host machine
+docker run -it --name h1 --network host -d nginx #copy paste your host machine's IP adddress into the web browser
+docker inspect h1 #You will see there is no IP address #It is the same thing as your application is running into your container
+docker ps
+docker rm -f h1
+
+
+#None network
+#when container is running on the none network it won't have any IP address
+#In times of testing when you wanted run something on isolated mode you can use none network
+#Dettaching and connecting a network
+docker container run -it --name n1 --network none -d ubuntu
+docker inspect n1
+docker network disconnect none n1
+docker network connect bridge n1
+docker inspect n1 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

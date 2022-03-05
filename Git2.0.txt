@@ -1,0 +1,107 @@
+13/11/2021                   
+
+                       master branch (latest code)
+                                [Code owner]
+                                         /\
+                                        /  \
+                                      /      \
+                               Dev1      Dev2
+                             Branch     Branch
+
+sonarqube: Tool used for code analysis
+Git mergetool : To resolve the merge conflict
+branch inside a branch is not possible
+
+git clone <https url of repo>
+git branch
+git branch feature1#Creating a sub branch #All the files from master will be copied to feature1
+git branch -D feature1#Deleting the branch
+git branch feature1
+git checkout feature1#To enter the branch
+ls
+touch text.txt
+git add .
+git commit -m "my file"
+ls
+git checkout master #text.txt will not appear inside master becoz it is created inside feature1 branch
+git push origin feature1 #It will push the feature1 to the remote repository
+ls
+git merge feature1 #To merge feature1 branch with master branch
+ls
+git pull origin master #To complete the process and pulling the changes to your local repo
+
+git branch feature2
+ls
+git checkout feature2
+ls
+touch 11.txt
+git add 11.txt
+git commit -m "11.txt file is added"
+git push origin feature2
+git merge feature2
+
+git rebase master #To add files from master to feature(sub-branch) #comes helpful when master is update with some new files which is unavailable in feature
+git merge master #To merge master to feature
+
+***difference between rebase and merge:***
+rebase put all the files from master first which are came to it after update. Ex: m1 m2 m3 m4 f1
+merge will put files in a sequence. Ex: m1 m2 m3 f1 m4 
+
+if you are in feature branch preference is given to rebase command 
+if you are in master branh preference is given to merge command 
+
+#Merge conflict when two developers working on a same file and trying to upload it to the remote repo:
+
+mkdir mc
+cd mc
+vi app.java
+touch app,java
+git init
+git add app,java
+git commit -m "master added app.java"
+git branch dev1
+git branch dev2
+git checkout dev1
+echo "code is added by dev1" >> app.java
+git add .
+git commit -m "dev1 added the code"
+git checkout dev2
+echo "code is added by dev2" >> app.java
+git add .
+git commit -m "dev2 added the code"
+git checkout master
+git merge dev1
+cat app.java
+git merge dev2 #Merge conflict takes place here
+cat app.java
+git mergetool
+git mergetool --tool=vimdiff or(vi app.java)
+ls
+
+**GIT workflow**
+A git workflow is a recipe or recommendation for how to use git to accomplish work in consistent and productive manner. Git workflows encourage users to leverage git effectively and consistently
+
+mkdir stash
+cd stash
+git init
+touch 9.txt 10.txt
+git add .
+git commit -m "9 and 10 file are added"
+git status
+git branch dev
+git checkout dev
+touch 11.txt
+git add 11.txt
+git status
+git checkout master
+ls
+git checkout dev
+git status
+git stash save "11.txt is saved in stash" #Stash command hides the file in stage area
+git status
+git checkout master
+ls
+git checkout dev
+git stash list
+git stash pop
+git stash clear#to permanently delete file from stash

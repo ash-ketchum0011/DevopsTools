@@ -1,0 +1,458 @@
+Volumes in Kubernetes:
+**********************NON PERSISTENT VOLUME***************************
+1. Non persistent volume: Empty directory(emptyDir). This volume is avialable until the pod get deleted. An emptyDir volume get created when a pod is assigned to a node and exists as long as that pod is running on that node.
+
+╚emptyDir volume creation:
+
+Master
+sudo su
+mkdir vol
+cd vol/
+vi ed.yaml
+*****************************************************************************
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-emptydir
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx
+    volumeMounts:
+    - name: test-vol
+      mountPath: /test-mnt
+  volumes:
+  - name: test-vol
+    emptyDir: {}
+*****************************************************************************
+kubectl create -f ed.yaml
+kubectl get pods
+kubectl describe pod nginx-emptydir
+kubectl exec -it nginx-emptydir -- bash
+ls
+cd test-mnt/
+ls
+touch 1 2 3 4
+ls 
+exit
+kubectl delete pod --all  #emptyDir volume is also deleted
+
+*************************hostPath VOLUME*****************************
+2. hostPath volume: A  hostPath volume mounts a file or directory from the host node's filesystem into your Pod. This is not something that most Pods will need, but it offers a powerful escape hatch for some applications.
+
+╚hostPath volume creation:
+Master
+
+vi hp.yaml
+*****************************************************************************
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-hostpath
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx
+      volumeMounts:
+      - mountPath: /test-mnt
+        name: test-vol
+  volumes:
+  - name: test-vol
+    hostPath:
+      path: /hp-vol
+*****************************************************************************
+kubectl create -f hp.yaml
+kubectl get pods
+kubectl get pods -o wide
+
+WORKER2
+sudo su
+ls /              #hp volume get created here
+ls /hp-vol/
+
+MASTER
+kubectl exec -it nginx-hostpath -- bash
+ls
+cd test-mnt/
+touch 1 2 3
+ls
+exit
+
+WORKER2
+ls /hp-vol/
+
+MASTER
+kubectl delete pod --all
+
+WORKER2
+ls /hp-vol/                             #data is still here even after the pod is deleted
+
+MASTER 
+#Here we are attaching the 'hp-vol' volume to the new Pod: 
+kubectl create -f hp.yaml      #It will create either create the pod in worker2 or we can dedicate it to that node using previous methods from previous lectures
+kubectl get pods -o wide
+kubectl exec -it nginx-hostpath -- bash
+cd test-mnt/
+ls
+
+WORKER2
+ls /hp-vol/
+touch /hp-vol/5
+
+MASTER
+ls
+exit
+************************PERSISTENT VOLUME******************************
+3. Persistent volume:
+#Volume spreaded along the cluster
+#Here the volume will have its own lifecycle and not depends upon Pod
+#Terms: PVC(persistent volume claim),RWM(read write many), RO(read only),RWO(read wirte once), storage class: manual.
+
+╚Creating a persistent volume:
+MASTER
+kubectl delete pod --all
+vi pv.yaml
+*****************************************************************************
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-hostpath
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/kube"
+*****************************************************************************
+kubectl create -f pv.yaml
+kubectl get pv
+
+╚ Creating persistent volume claim:
+vi pvc.yaml
+*****************************************************************************
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-hostpath
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+*****************************************************************************
+kubectl create -f pvc.yaml
+kubectl get pv
+kubectl get pvc
+#Creating a Pod using persistent volume claim:
+vi pod.yaml
+*****************************************************************************
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox
+spec:
+  volumes:
+  - name: host-volume
+    persistentVolumeClaim:
+      claimName: pvc-hostpath
+  containers:
+  - image: busybox
+    name: busybox
+    command: ["/bin/sh"]
+    args: ["-c", "sleep 600"]
+    volumeMounts:
+    - name: host-volume
+      mountPath: /mydata
+*****************************************************************************
+kubectl create -f pod.yaml
+kubectl get pods
+kubectl exec -it busybox -- /bin/sh
+ls
+cd mydata/
+touch 1 2
+ls
+exit
+kubectl get pods -o wide
+
+WORKER2
+ls /kube/
+
+MASTER
+kubectl delete pod --all
+
+WORKER2
+ls /kube/
+
+MASTER
+kubectl delete -f pvc.yaml
+kubectl delete -f pv.yaml
+
+WORKER2
+ls /kube/              #The data is still here even after the pv and pvc get deleted
+
+*****************************************************************************
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+KUBERNETES DASHBOARD: GUI
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.1/aio/deploy/recommended.yaml
+kubectl get ns          #namespace with name kubernetes-dashboard will get created
+kubectl get svc -n kubernetes-dashboard            #It will show the service kubernetes-dashboard with type:clusterIP we need to modify this type
+kubectl edit svc kubernetes-dashboard -n kubernetes-dashboard
+#change type:clusterIP to type:NodePort #because we want to access it externally
+kubectl get svc -n kubernetes-dashboard #copy port number written parallel to Nodeport (for example 30287)
+#copy master or either any worker node IP address https://<IPaddress>:port-number and paste into the browser (for example: https://65.2.34.53:30287) #click on "Advanced" #click on"Proceed to 65.2.34.53" #need to create a token
+
+#To create a token for the access:
+
+kubectl create serviceaccount cluster-admin-dashboard-sa
+kubectl create clusterrolebinding cluster-admin-dashboard-sa --clusterrole=cluster-admin --serviceaccount=default:cluster-admin-dashboard-sa
+TOKEN=$(kubectl describe secret $(kubectl -n kube-system get secret | awk '/^cluster-admin-dashboard-sa-  token-/{print $1}') | awk '$1=="token:"{print $2}')
+echo $TOKEN
+#Copy whole text
+#Go to browser and paste it
+#Click on "sign in"
+#You have entered the kubernetes GUI/kubernetes dasboard
+#Both CLI and GUI works simultaneously any changes done in GUI is visible from CLI and vice versa.
+
+
+*******************************************************************************
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+
+Configuration Management Tool (Infrastructure as a code): They are called idempotency(They work on desire state if desire is already met then there will be no changes takes place?no script execution)
+
+1.Puppet 2.Ansible 3.Terraform 
+
+Pull based approach: Client is requesting to run the code from master to client env Example: Puppet, Chef
+Push based approach: If update is done by the master on the env Example: Ansible
+There is a central server which have the Script or manifest file.
+PUSH BASED > PULL BASED according to current demand push based are more in demand
+
+********************************PUPPET***************************************
+Puppet Enterprise: Not free
+Puppet Open source: Free of cost
+
+Puppet Architecture:
+
+    Master                                                      Managed Nodes
+puppet server                                 Puppet agent | facter (Managed node)
+Cerificate authority                        Puppet agent | facter (Managed node)
+PuppetDB                                      Puppet agent | facter (Managed node)
+
+Cerficate authority: To check whether the request comming from the node is authorized or not
+Facter : It have all the details related to the managed nodes(memory used,etc)
+********************Puppet Agent and Master deployment**************************
+Launch two EC2 instamce with name PuppetMaster and PuppetAgent
+
+PM(PuppetMaster)
+sudo su
+hostname pmaster
+vi /etc/hostname
+*******************************************************************************
+pmaster
+*******************************************************************************
+bash
+apt update
+
+PA(PuppetAgent)
+sudo su
+hostname pagent
+vi /etc/hostname
+*******************************************************************************
+pagent
+*******************************************************************************
+bash
+apt update
+
+PM
+wget https://apt.puppetlabs.com/puppet-release-bionic.deb
+sudo dpkg -i puppet-release-bionic.deb
+sudo apt-get update
+sudo apt-get install puppet-master
+sudo systemctl status puppet-master.service
+vi /etc/default/puppet-master
+**********************In the second line paste this text*****************************
+JAVA_ARGS="-Xms512m Xmx512m"
+*******************************************************************************
+sudo systemctl restart puppet-master
+sudo ufw allow 8140/tcp                                  #It will open 8140 port
+
+PA
+wget https://apt.puppetlabs.com/puppet-release-bionic.deb
+sudo dpkg -i puppet-release-bionic.deb
+sudo apt-get install puppet
+
+PM
+#cpoy the private IP address of the puppetmaster instance
+vi /etc/hosts
+*******************************************************************************
+#<Paste Private IPaddress in the second line> puppet
+*******************************************************************************
+
+PA
+#cpoy the private IP address of the puppetmaster instance
+vi /etc/hosts
+*******************************************************************************
+#<Paste Private IPaddress in the second line> puppet
+*******************************************************************************
+sudo systemctl start puppet
+sudo systemctl enable puppet
+
+PM
+sudo mkdir -p /etc/puppet/code/environments/production/manifests #path where puppet manifest files will get created
+sudo puppet cert list  #all the puppet agent that get created
+sudo puppet cert sign --all #giving approval so that pull process can work#authentication of agent is done
+cd /etc/puppet/code/environments/production/manifests 
+vi site.pp    #.pp stands for puppet policy #all manifest file use this extension
+*******************************************************************************
+node default{    #Default is for all the agents and by writing the name of particular we can dedicate to it
+
+package {'apache2':             #resource name
+ensure => installed,
+}
+
+}
+*******************************************************************************
+PA
+
+puppet agent -t   #asking master to execute the script
+systemctl status apache2 
+puppet agent --test
+
+PM
+
+vi site.pp
+*******************************************************************************
+node default{    #Default is for all the agents and by writing the name of particular we can dedicate to it
+
+package {'apache2':             #resource name
+ensure => purged                 #apache2 is to be deleted
+}
+
+}
+*******************************************************************************
+
+PA
+
+puppet agent --test  #puppet agent -t #both does the same work
+systemctl status apache2   #apache2 is uninstalled
+ls /etc/puppet/
+
+PM
+
+vi site.pp
+*******************************************************************************
+node default{    #Default is for all the agents and by writing the name of particular we can dedicate to it
+
+package {'apache2':             #resource name
+ensure => installed                #apache2 is to be deleted
+}
+
+}
+*******************************************************************************
+
+PA
+
+vi /etc/puppet/puppet.conf
+****************************add new line***************************************
+[agent]
+runinterval=1m #runinterval execute "puppet agent -t" command in this interval
+*******************************************************************************
+systemctl status apache2 #Try this until apache2 is running & installed appeared
+vi /etc/puppet/puppet.conf
+**************************** remove line ***************************************
+[agent]
+runinterval=1m #runinterval execute "puppet agent -t" command in this interval
+*******************************************************************************
+
+PM
+
+vi site.pp
+*******************************************************************************
+node default{    #Default is for all the agents and by writing the name of particular we can dedicate to it
+
+package {'apache2':             #resource name
+ensure => purged                 #apache2 is to be deleted
+}
+
+}
+*******************************************************************************
+
+PA
+
+puppet agent -t
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

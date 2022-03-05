@@ -1,0 +1,17 @@
+Natural gas liquids(NGL): Ethane, Butane, Pentane, Propane
+LNG:Liquefied Natural Gas (Ethane and propane)
+LPG: Liquefied petroleum gas
+Oil and gas industry divided into "3" streams: upstream, midstream, downstream
+Diff. source of energy: Solar, nuclear, wind, fossil fuels
+Energy{oil and gas: fossil fuels(upstream,mid,down), Alternative energy:non fossil fuels(solar,wind,nuclear,bio-fuels)}
+Resources{mining:upstream area, metal:down stream area, EPC:mid stream}
+Upstream: Extraction of crude oil 
+Midstream: Transportation of oil
+Downstream: Refining and marketing of oil
+
+Oil field services companies: Weatherford, Halliburton, Mc dermott, Nabors
+This is the sector which includes those companies that provide the specialized equipment, serivces and technical skills need for: Exploring, drilling, completing, testing, producing and maintaining
+
+microsoft docs. and microsoft path available in 
+adam mark zack
+question dums

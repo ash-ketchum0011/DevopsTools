@@ -1,0 +1,205 @@
+DATE: 10/11/21
+
+mobaxterm ; for connecting to your instance
+mobaxterm.mobatek.net #install the software from here
+# Connecting to the EC2 via Mobaxterm
+session > SSH > In remote host(Public IP)/In specific username(ubuntu)
+Advance SSH settings > click on "use private key" (choose .pem file) > click on "OK"
+
+Git ; git-scm.com #click right click inside any folder and then click on "show more options" and then choose "Git bash" you can use and run linux command through it also
+
+*****GIT COMMANDS********
+
+#To change the host name:
+sudo su
+hostname myashgit
+bash
+#To make this hostname permanently change 
+vi /etc/hostname
+wq! #To save and exit
+
+#To install git
+apt install git
+#Git version
+git --version
+
+#create a global config file
+git config --global user.name ashlesh
+ls -la /root
+cat /root/.gitconfig
+git config --global user.email ashleshkul@gmail.com
+cat /root/.gitconfig
+
+#case study
+#Part 1 global configuration
+mkdir myproj
+cd myproj/
+git init #To initialize git local repository
+git config --global user.name ashlesh
+git config --global user.email ashleshkul@gmail.com
+cat /root/.gitconfig
+touch myfile_1.txt
+git status
+git add myfile_1.txt
+git commit -m "myfile_1 is added"
+git log #who is the author 
+
+cd ..
+
+#Part 2 Local configuration
+mkdir localconfigproj
+cd localconfigproj/
+git init
+git config --local user.name ashleshlocal
+cat /root/.gitconfig
+cat .git/config
+touch myfile_2.txt
+git status
+git add myfile_2.txt
+git commit -m "myfile_2 is added"
+git log
+
+
+
+#file inside .git
+ls .git
+output> HEAD branches config description hooks info objects refs
+HEAD : shows current index positon or latest commit (like v1 v2 v3)
+object : It stores the snapshots(version of the file) in encrypted manner
+
+git add . #add all the untracked files to the stage area
+
+DATE: 11/11/21
+
+mkdir folder1
+cd folder1/
+git init
+touch 1.txt 2.txt 3.txt 4.txt
+git add .  #adds all the files to the stage
+git status 
+git commit -m '1.txt is commited' 1.txt  #commit particular file at time
+git status 
+git log
+git log --oneline   #It will print only the lines that are useful
+git commit -m "2.txt, 3.txt and 4.txt are commited"
+
+#Connecting to the Github
+git remote add origin (paste http url here(under"code")
+cat .git/config
+
+#To push your local commits to the Githud(remote) repository
+Go to settings > Developer settings > Personal access token > Generate new token
+copy token > git push origin master > provide user name and for password provide "Personal access token"
+
+#If you want to download repository from other users account
+mkdir newuser
+cd newuser/
+git clone (paste http url of the repository here) #suppose the name of the repository is Repo1
+
+cd ..
+cd ..
+
+#Connecting via SSH url
+cd Repo1/
+vi .git/config 
+#change https url with SSH url
+ssh-keygen
+#copy name of the file public key is saved in like: my.txt.pub
+cat (paste the file name here)
+#copy key and open github > settings > Deploy keys > add deploy key> paste key in "key" > allow write access > click "add key"
+
+touch 5.txt
+git status
+git add 5.txt
+git commit -m "5.txt file is added"
+git push origin master
+
+#If you have added file(6.txt) manually to the github and it is not available in your local repo it will show some error if you try to push new file (7.txt)to the github, so to overcome this issue
+
+touch 7.txt
+git add 7.txt
+git commit -m "7.txt" #It will show some error
+git fetch
+ls
+git merge origin/master
+#ctrl+x
+ls
+git push origin master
+
+***alternative command for git fetch + git merge origin/master***
+git pull origin master
+
+touch 1.exe 3.log
+vi .gitignore
+#write files name inside it 
+git status
+vi .gitignore
+#.gitignore insdie it
+
+git diff
+git diff commitID1 commitID2
+
+***These are for local repository only***
+
+git reset HEAD~1  #last one commit will be deleted
+git reset HEAD~2  #last two commit will be deleted
+
+git reset --mixed HEAD~1 #It will move commit to the untracked area
+git add .
+git commit -m "txt is added"  #It will commit that file again
+
+git reset --soft HEAD~1 #It will move commit to the stage area
+git commit -m "txt is added" #It will commit that file again
+
+git reset --hard HEAD~1 #It will delete it permanently
+
+git revert commitID #revert the modification
+
+git revert commitID #revert to revert
+
+#TAG comment
+
+touch 1.txt 2.txt 3.txt 
+git add .
+git commit -m "My 1.txt, 2.txt and 3.txt"
+ls
+git tag v1
+
+touch 4.txt 5.txt 6.txt 
+git add .
+git commit -m "My 4.txt, 5.txt and 6.txt"
+ls
+git tag v2
+
+touch 7.txt 8.txt 9.txt 
+git add .
+git commit -m "My 7.txt, 8.txt and 9.txt"
+ls
+git tag v3
+
+git tag #shows all the tags
+git checkout v1
+ls
+
+git checkout v2
+ls
+
+git checkout v3
+ls
+
+#moving these tags to remote repository
+git push --tags
+git push origin <tag_name> #To push a single tag
+
+git remote rm origin
+
+
+
+
+
+
+
+
+
+
+

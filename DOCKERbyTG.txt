@@ -1,0 +1,188 @@
+
+DOCKER BASIC COMMANDS-------------------------------------------
+
+To Install Docker:
+sudo apt install docker.io -y
+
+To find out images on docker hub:
+docker search ubuntu
+
+To check docker service is start or not:
+service docker status
+service docker start
+docker info
+
+To check apache server is working or not:
+systemctl status apache2
+
+To use the bash inside the container:
+docker exec -it container_name bash
+Alternatively-----
+docker attach container_name
+Alternatively-----
+docker run -it --name container_name image_name /bin/bash
+
+To see all the containers:
+docker ps -a 
+
+To see all running containers:
+docker ps
+
+To see all the images:
+docker images
+
+To remove container:
+docker rm container_name
+
+To remove a running container:
+docker rm -f container_name
+
+To remove stopped docker container:
+docker container prune
+
+To remove image:
+docker rmi image_name
+
+To delete unused docker images:
+docker image prune
+docker image prune -a
+
+To pull image from docker hub:
+docker pull image_name
+
+To inspect the container:
+docker inspect container_name
+
+To start and restart the container:
+docker start container_name
+docker restart container_name
+
+To stop and pause the container:
+docker stop container_name
+docker pause container_name
+
+To stop the container forcefully:
+docker kill container_name
+
+To show process running inside the container:
+docker top container_name
+
+To show memory used by the container:
+docker stats container_name
+
+To show all modified files inside the container:
+docker diff container_name  #C-change, D-deletion, A-append
+
+To tag an image:
+docker tag image_name new_name:18.04
+
+To rename a container:
+docker rename container_name new_name
+
+
+--------------------------------------------------------------------------------
+
+
+To convert container into image:
+docker commit container_name image_name
+
+TWO WAYS OF SHARING IMAGE--------------------------------------
+SAVE & LOAD method------------------
+docker save webimg > webimg.tar
+ls
+docker rmi webimg
+docker images
+ls
+docker load < webimg.tar #To unzip the .tar file and store it as an image
+
+IMPORT & EXPORT method----------------
+docker export container_name -o container_name1.tar
+ls
+docker import c1.tar img1
+
+
+DOCKER FILE------------------------------------------------------------
+Dockerfile is basically a text file it contains some set of instructions
+Automation of docker image creation
+Docker file name should always be "Dockerfile"
+
+---------------------DOCKERFILE COMPONENTS-------------------------
+FROM- For base image(image which is to be used for the creation of custom image by dockerfile). This command must be on top of the dockerfile
+
+RUN- To execute commands it will create a layer in image
+
+MAINTAINER- Author/Owner/Description
+
+COPY- Copy files from local system(base machine) we need to provide the destination
+
+ADD- Similar to copy but it provides a feature to download files from internet, also it extracts file
+
+EXPOSE- To expose ports such as port 8080 for tomcat, port 80 for nginx etc
+
+WORKDIR- To set working directory for a container(It will teleport you to the mentioned directory after the creation of container is done)
+
+CMD- Excute commands but during container creation
+
+ENTRYPOINT- Similar to CMD but has higher priorty over CMD, first commands will be executed by ENTRYPOINT only
+
+ENV- Environment variables
+
+VOLUME- It is used to create or mount the volume to the docker container
+
+USER- It is used to set the user name and UID when running container
+
+ARG- Used to set environment variables with keys and values during the image build
+
+ONBUILD- Used to specify a command that runs when the images in dockerfile is used as base image for another image
+
+SHELL- Used to set the default shell
+
+HEALTHCHECK- Used to check container health by running a command inside the container
+
+,dockerignore- Used to prevent copy local modules and other unwanted files from being copied into docker image
+
+--------------------------------------------------------------------------------------------------
+
+STEPS TO CREATE DOCKERFILE AND THEN IMAGE OUT OF IT;
+
+Example1.-----------
+
+vi Dockerfile
+---------------------------------
+#Press 'i' for inserting the text
+FROM ubuntu
+RUN echo "my dockerfile is created"> /tmp/testfile
+----------------------------------
+
+docker build -t myimg .  #'t' is for tag #'.' is to indicate towards Dockerfile
+docker images
+docker run -it --name newcon1 myimg
+
+Example2.--------------
+
+vi Dockerfile
+---------------------------------
+#Press 'i' for inserting the text
+FROM ubuntu
+WORKDIR /tmp
+RUN echo "my image2 is created"> /tmp/testfile
+ENV myname ash
+COPY testfile1 /tmp
+ADD test.tar.gz /tmp
+----------------------------------
+
+touch testfile1
+touch test
+tar -cvf test.tar test        #converting test to test.tar
+ls
+gzip test.tar                   # zipping the test.tar file
+ls
+rm -rf test
+docker build -t newimage .  #'t' is for tag #'.' is to indicate towards Dockerfile
+docker images
+docker run -it --name newcon2 newimage
+echo $myname      #To check environment character
+
+
+
+

@@ -51,9 +51,9 @@ git stash apply stash@{0}
 git stash clear
 
 ============================================
---RESET command
-git reset <filename>  #It will bring the file from staging area to untracked area
-git reset .   ##It will bring the files from staging area to untracked area
+
+--CHECKOUT command
+git checkout <commitID> #To go back to any previous version
 
 
 --REVERT command
@@ -62,10 +62,17 @@ git revert <commit ID>
 #git commit can also be used to do similar things but it deletes the last commit while doing this.
 
 
+--RESET command
+git reset <filename>  #It will bring the file from staging area to untracked area
+git reset .   #It will bring the files from staging area to untracked area
+git reset HEAD <filename>  #It will bring the file from staging area to untracked area
+git reset HEAD * #It will bring the files from staging area to untracked area
+
+
 --More of GIT RESET
 
 git reset HEAD~1  #last one commit will be deleted
-git reset HEAD~2  #last two commit will be deleted
+git reset HEAD~2  #last two commit will be deleted   #It will only work till 4-5 HEAD
 
 git reset --mixed HEAD~1 #It will move commit to the untracked area
 git add .

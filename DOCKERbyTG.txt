@@ -79,6 +79,11 @@ docker tag image_name new_name:18.04
 To rename a container:
 docker rename container_name new_name
 
+To push image to the docker hub:
+docker tag image_name username_of_dockerhub_account/new_image_name:123.09
+docker login
+docker push username_of_dockerhub_account/new_image_name:123.09
+
 
 --------------------------------------------------------------------------------
 
